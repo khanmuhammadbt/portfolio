@@ -1,6 +1,6 @@
 # Khan Muhammad Portfolio
 
-Full-stack portfolio and CMS application built with React, Vite, TypeScript, and Flask.
+Full-stack portfolio and CMS application built with React, Vite, JavaScript, and Flask. The frontend uses `.js` and `.jsx` files; TypeScript is not required.
 
 ## Requirements
 
@@ -118,6 +118,17 @@ cd backend
 ## Project structure
 
 ```text
-backend/    Flask API, authentication, database, and tests
-frontend/   React/Vite application and admin interface
+backend/
+	app/       Flask API, authentication, and database
+	tests/     Backend smoke tests
+frontend/
+	src/
+		admin/       Admin console components (.jsx)
+		components/  Shared React UI (.jsx)
+		lib/         API, content, and utilities (.js/.jsx)
+		pages/       React pages (.jsx)
+		store/       React context providers (.jsx)
+		App.jsx
+		main.jsx
+	vite.config.js
 ```
