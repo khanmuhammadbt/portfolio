@@ -20,13 +20,13 @@ Install frontend dependencies:
 
 ```powershell
 cd frontend
-npm install
+npm ci
 cd ..
 ```
 
 ## Development
 
-Development uses two processes so Vite can provide fast hot reload while Flask handles the API, database, authentication, and admin functionality.
+This project follows Rule 2 from [project_rules.md](./project_rules.md): backend and frontend code are organized by feature, with shared code kept separate.
 
 ### 1. Start the frontend
 
@@ -43,7 +43,8 @@ Open a second terminal from the project root:
 
 ```powershell
 cd backend
-..\venv\Scripts\python.exe run.py
+..\venv\Scripts\python.exe -m flask --app app db upgrade
+..\venv\Scripts\python.exe app.py
 ```
 
 Backend URL: `http://127.0.0.1:5000`
@@ -53,8 +54,11 @@ Useful endpoints:
 - Website: `http://127.0.0.1:5173`
 - API health check: `http://127.0.0.1:5000/api/health`
 - Admin panel: `http://127.0.0.1:5173/#/admin`
+- Public blog: `http://127.0.0.1:5173/#/blog`
 
 The frontend can also run in demo mode if the Flask API is unavailable. In that mode, editable content is stored in the browser instead of the backend database.
+
+Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `#/blog` and open at `#/blog/<slug>`.
 
 ## Production-style single-server run
 
@@ -65,7 +69,8 @@ cd frontend
 npm run build
 
 cd ..\backend
-..\venv\Scripts\python.exe run.py
+..\venv\Scripts\python.exe -m flask --app app db upgrade
+..\venv\Scripts\python.exe app.py
 ```
 
 Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/#/admin`.
@@ -90,13 +95,14 @@ Change the password from the admin Security tab. For a new deployment, set `ADMI
 | `SECURE_COOKIE` | `false` | Enable secure cookies when using HTTPS |
 | `CHAT_API_KEY` | unset | Optional server-side chatbot API key |
 | `CHAT_MODEL` | `gemini-3.5-flash-lite` | Chatbot model name |
+| `DIST_DIR` | `../frontend/dist` (relative to `backend`) | Built frontend directory served by Flask |
 
 PowerShell example:
 
 ```powershell
 $env:ADMIN_USERNAME = "admin"
 $env:ADMIN_PASSWORD = "change-this-password"
-.\venv\Scripts\python.exe backend\run.py
+.\venv\Scripts\python.exe backend\app.py
 ```
 
 ## Checks
@@ -112,23 +118,58 @@ Backend smoke test:
 
 ```powershell
 cd backend
-..\venv\Scripts\python.exe tests\test_smoke.py
+..\venv\Scripts\python.exe smoke_test.py
 ```
+
+Database migration after model changes:
+
+```powershell
+cd backend
+..\venv\Scripts\python.exe -m flask --app app db migrate -m "Describe schema change"
+..\venv\Scripts\python.exe -m flask --app app db upgrade
+```
+
+For an existing database created before migrations, stamp the initial schema
+baseline once before upgrading: `db stamp 8a23b4e88314`.
 
 ## Project structure
 
 ```text
 backend/
-	app/       Flask API, authentication, and database
-	tests/     Backend smoke tests
+  app/
+    models/
+    routes/
+    services/
+    utils/
+    __init__.py
+    extensions.py
+  migrations/
+    versions/
+  app.py
+  default_content.json
+  requirements.txt
+  smoke_test.py
+
 frontend/
-	src/
-		admin/       Admin console components (.jsx)
-		components/  Shared React UI (.jsx)
-		lib/         API, content, and utilities (.js/.jsx)
-		pages/       React pages (.jsx)
-		store/       React context providers (.jsx)
-		App.jsx
-		main.jsx
-	vite.config.js
+  public/
+  src/
+    admin/
+    components/
+    features/
+      auth/
+      blog/
+      chat/
+      content/
+      portfolio/
+      themes/
+    lib/
+    store/
+    utils/
+    App.jsx
+    index.css
+    main.jsx
+  index.html
+  package-lock.json
+  package.json
+  vite.config.js
 ```

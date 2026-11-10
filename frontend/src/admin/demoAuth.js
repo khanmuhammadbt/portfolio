@@ -5,9 +5,14 @@
  * In production (Flask serving the app), ALL auth is server-side.
  */
 export class LockedError extends Error {
-    retryAfter;
     constructor(retryAfter) {
         super("Too many failed attempts");
+        Object.defineProperty(this, "retryAfter", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
         this.retryAfter = retryAfter;
     }
 }

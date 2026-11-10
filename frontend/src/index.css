@@ -12,26 +12,26 @@
 
 /* ---------- NEUMORPHIC DESIGN TOKENS ---------- */
 :root {
-  --bg: #e0e5ec;
-  --text: #343b59;
-  --muted: #6d7592;
-  --accent: #5b5ee9;
-  --accent2: #ef5d8f;
-  --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
+  --bg: #050b07;
+  --text: #f4fff9;
+  --muted: #9db3a8;
+  --accent: #3b82f6;
+  --accent2: #93c5fd;
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
   /* dual-tone shadow palette */
-  --shd: rgb(163 177 198 / 0.72);
-  --shl: rgb(255 255 255 / 0.92);
+  --shd: rgb(2 6 3 / 0.82);
+  --shl: rgb(18 29 24 / 0.9);
 }
 
 .dark {
-  --bg: #262934;
-  --text: #e8ebf6;
-  --muted: #9aa2bd;
-  --accent: #8b8eff;
-  --accent2: #ff7fb0;
-  --accent-soft: rgb(139 142 255 / 0.14);
-  --shd: rgb(10 12 19 / 0.66);
-  --shl: rgb(255 255 255 / 0.06);
+  --bg: #070d09;
+  --text: #f4fff9;
+  --muted: #9db3a8;
+  --accent: #3b82f6;
+  --accent2: #93c5fd;
+  --accent-soft: rgb(59 130 246 / 0.14);
+  --shd: rgb(2 6 3 / 0.82);
+  --shl: rgb(24 31 28 / 0.8);
 }
 
 html {
@@ -43,29 +43,9 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
-  letter-spacing: -0.01em;
   transition: background-color 0.55s ease, color 0.55s ease;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at 20% 10%, rgba(255,255,255,0.04), transparent 26%);
-  opacity: 0.8;
-}
-
-main > section {
-  position: relative;
-  isolation: isolate;
-}
-
-main > section + section {
-  border-top: 1px solid rgba(148, 163, 184, 0.08);
 }
 
 /* ---------- URDU MODE (scoped to public site only — admin stays LTR) ---------- */
@@ -85,48 +65,6 @@ main > section + section {
   color: #fff;
 }
 
-/* ---------- ACCESSIBILITY ---------- */
-/* visible keyboard focus on every interactive element */
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-
-/* skip-to-content link (visible only on keyboard focus) */
-.skip-link {
-  position: fixed;
-  top: 0.75rem;
-  left: 50%;
-  transform: translate(-50%, -150%);
-  z-index: 100;
-  padding: 0.75rem 1.5rem;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.875rem;
-  transition: transform 0.25s ease;
-}
-.skip-link:focus { transform: translate(-50%, 0); }
-
-/* screen-reader only text */
-.sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* minimum touch target on coarse pointers (WCAG 2.5.5) */
-@media (pointer: coarse) {
-  a, button { min-height: 44px; }
-  a:where(.inline-link), button:where(.inline-chip) { min-height: 0; }
-}
-
 /* ---------- SCROLLBAR ---------- */
 ::-webkit-scrollbar { width: 12px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -137,7 +75,18 @@ main > section + section {
 }
 
 /* ---------- THEMEABLE SURFACE TOKENS (default = neumorphism) ---------- */
-:root {
+:root,
+[data-theme="neumorphism"] {
+  /* palette repeated here so nested scopes (admin panel, previews) are self-contained */
+  --bg: #050b07;
+  --text: #f4fff9;
+  --muted: #9db3a8;
+  --accent: #22c55e;
+  --accent2: #86efac;
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+  --shd: rgb(2 6 3 / 0.82);
+  --shl: rgb(18 29 24 / 0.9);
+
   --s-bg: var(--bg);
   --s-border: none;
   --s-blur: none;
@@ -207,52 +156,32 @@ main > section + section {
   box-shadow: inset 6px 6px 12px rgb(0 0 0 / 0.28), inset -6px -6px 12px rgb(255 255 255 / 0.12);
 }
 
-/* self-contained palette for nested neumorphic scopes (admin panel, previews).
-   :where() keeps specificity at 0 so the page-level .dark rule always wins. */
-:where([data-theme="neumorphism"]) {
-  --bg: #e0e5ec;
-  --text: #343b59;
-  --muted: #6d7592;
-  --accent: #5b5ee9;
-  --accent2: #ef5d8f;
-  --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
-  --shd: rgb(163 177 198 / 0.72);
-  --shl: rgb(255 255 255 / 0.92);
+/* dark palette for nested neumorphic scopes (admin panel, theme previews) */
+html.dark [data-theme="neumorphism"] {
+  --bg: #070d09;
+  --text: #f4fff9;
+  --muted: #9db3a8;
+  --accent: #3b82f6;
+  --accent2: #93c5fd;
+  --accent-soft: rgb(59 130 246 / 0.14);
+  --shd: rgb(2 6 3 / 0.82);
+  --shl: rgb(24 31 28 / 0.8);
 }
-:where(html.dark [data-theme="neumorphism"]) {
-  --bg: #262934;
-  --text: #e8ebf6;
-  --muted: #9aa2bd;
-  --accent: #8b8eff;
-  --accent2: #ff7fb0;
-  --accent-soft: rgb(139 142 255 / 0.14);
-  --shd: rgb(10 12 19 / 0.66);
-  --shl: rgb(255 255 255 / 0.06);
+
+html:not(.dark)[data-theme="neumorphism"],
+html:not(.dark) [data-theme="neumorphism"] {
+  --bg: #f5f5f5;
+  --text: #111111;
+  --muted: #666666;
+  --accent: #1d4ed8;
+  --accent2: #3b82f6;
+  --accent-soft: rgb(29 78 216 / 0.08);
+  --shd: rgb(0 0 0 / 0.16);
+  --shl: rgb(255 255 255 / 0.9);
 }
 
 /* nested scopes paint their own canvas so they never show the page theme behind */
 [data-theme] { color: var(--text); }
-
-/* ---------- MOBILE POLISH ---------- */
-@media (max-width: 640px) {
-  /* soften huge shadows so cards don't bleed into each other on small screens */
-  :root {
-    --s-md: 8px 8px 18px var(--shd), -8px -8px 18px var(--shl);
-    --s-lg: 12px 12px 26px var(--shd), -12px -12px 26px var(--shl);
-    --s-hover: 12px 12px 26px var(--shd), -12px -12px 26px var(--shl);
-  }
-  /* disable hover lift on touch devices (prevents sticky hover states) */
-  .neu-hover:hover { transform: none; }
-}
-
-@media (hover: none) {
-  .neu-hover:hover { transform: none; }
-  .press:hover { transform: none; box-shadow: var(--s-press); color: inherit; }
-  .btn-primary:hover { transform: none; filter: none; }
-}
-
-/* RTL-safe utility: flip inline icons/arrows in Urdu mode */
-.rtl\:-scale-x-100:where([dir="rtl"] *) { transform: scaleX(-1); }
 
 /* =========================================================
    DESIGN STYLES — each themable block restyles every surface
@@ -469,95 +398,6 @@ html.dark[data-theme="material"], html.dark [data-theme="material"] {
 html[data-theme="cyberpunk"] body { background: #0a0a14; }
 [data-theme="cyberpunk"] .press:hover { border-color: rgb(255 0 160 / 0.55); }
 
-/* ---------- VOLTAGENT (inspired by awesome-design-md / public AI product design) ---------- */
-[data-theme="voltagent"] {
-  --bg: #0b120f;
-  --text: #edfdf6;
-  --muted: #a2c8b5;
-  --accent: #7af0bf;
-  --accent2: #d8b17a;
-  --accent-soft: rgb(122 240 191 / 0.14);
-  --s-bg: rgba(18, 26, 23, 0.9);
-  --s-border: 1px solid rgba(170, 187, 180, 0.12);
-  --s-blur: blur(10px) saturate(1.05);
-  --s-xs: 0 0 0 1px rgba(166, 180, 176, 0.08), 0 8px 18px rgba(2, 12, 9, 0.3);
-  --s-sm: 0 0 0 1px rgba(166, 180, 176, 0.09), 0 12px 24px rgba(2, 12, 9, 0.38);
-  --s-md: 0 0 0 1px rgba(166, 180, 176, 0.1), 0 18px 38px rgba(2, 12, 9, 0.44);
-  --s-lg: 0 0 0 1px rgba(166, 180, 176, 0.1), 0 24px 50px rgba(2, 12, 9, 0.5);
-  --s-hover: 0 0 0 1px rgba(122, 240, 191, 0.12), 0 28px 54px rgba(3, 22, 18, 0.58);
-  --s-inset: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(255,255,255,0.02);
-  --s-inset-sm: inset 0 1px 0 rgba(255,255,255,0.02), inset 0 -1px 0 rgba(255,255,255,0.04);
-  --s-press: 0 0 0 1px rgba(166, 180, 176, 0.1), 0 10px 20px rgba(2, 12, 9, 0.34);
-  --s-press-hover: 0 0 0 1px rgba(122, 240, 191, 0.14), 0 14px 28px rgba(3, 22, 18, 0.52);
-  --s-press-active: inset 0 2px 8px rgba(4, 10, 8, 0.7), inset 0 0 0 1px rgba(122, 240, 191, 0.08);
-  --btn-bg: linear-gradient(135deg, #8ff6c8 0%, #7af0bf 42%, #69d7aa 100%);
-  --btn-fg: #081d17;
-  --btn-shadow: 0 0 0 1px rgba(122, 240, 191, 0.18), 0 14px 30px rgba(64, 190, 136, 0.24);
-  --btn-radius: 999px;
-  --lift: -5px; --lift-sm: -2px;
-}
-html.dark[data-theme="voltagent"], html.dark [data-theme="voltagent"] {
-  --bg: #0b120f;
-  --text: #edfdf6;
-  --muted: #a2c8b5;
-  --accent: #7af0bf;
-  --accent2: #d8b17a;
-  --s-bg: rgba(18, 26, 23, 0.9);
-}
-html[data-theme="voltagent"] body {
-  background:
-    radial-gradient(circle at 15% 0%, rgba(122, 240, 191, 0.12), transparent 22%),
-    radial-gradient(circle at 80% 12%, rgba(216, 177, 122, 0.08), transparent 18%),
-    linear-gradient(180deg, #0b120f 0%, #101c18 38%, #0b120f 100%);
-  background-attachment: fixed;
-}
-html[data-theme="voltagent"] body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(rgba(255,255,255,0.012), rgba(255,255,255,0.012)),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255,255,255,0.012),
-      rgba(255,255,255,0.012) 1px,
-      transparent 1px,
-      transparent 5px
-    );
-  opacity: 0.44;
-  mix-blend-mode: soft-light;
-}
-html[data-theme="voltagent"] .text-stroke {
-  -webkit-text-stroke-color: rgba(237, 253, 246, 0.9);
-}
-[data-theme="voltagent"] .neu,
-[data-theme="voltagent"] .neu-lg,
-[data-theme="voltagent"] .neu-sm,
-[data-theme="voltagent"] .neu-xs,
-[data-theme="voltagent"] .neu-inset,
-[data-theme="voltagent"] .neu-inset-sm,
-[data-theme="voltagent"] .press,
-[data-theme="voltagent"] .btn-primary {
-  border-radius: 1.5rem;
-}
-[data-theme="voltagent"] .btn-primary {
-  letter-spacing: -0.02em;
-  box-shadow: 0 0 0 1px rgba(122, 240, 191, 0.18), 0 14px 30px rgba(64, 190, 136, 0.22);
-}
-[data-theme="voltagent"] .neu-inset-sm,
-[data-theme="voltagent"] .press,
-[data-theme="voltagent"] .neu-sm {
-  backdrop-filter: blur(3px);
-}
-[data-theme="voltagent"] .press:hover,
-[data-theme="voltagent"] .neu:hover,
-[data-theme="voltagent"] .neu-sm:hover,
-[data-theme="voltagent"] .neu-lg:hover {
-  border-color: rgba(122, 240, 191, 0.18);
-  box-shadow: 0 0 0 1px rgba(122, 240, 191, 0.1), 0 16px 34px rgba(14, 24, 20, 0.5);
-}
-
 /* outlined display text */
 .text-stroke {
   color: transparent;
@@ -598,11 +438,5 @@ html[data-theme="voltagent"] .text-stroke {
 .pulse-dot { animation: pulse-dot 2s ease-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track, .animate-floaty, .animate-spin-slow, .pulse-dot { animation: none !important; }
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+  .marquee-track, .animate-floaty, .animate-spin-slow { animation: none; }
 }

@@ -1,0 +1,17 @@
+{
+  "name": "Khan Muhammad — Full-Stack Developer",
+  "short_name": "KM Portfolio",
+  "description": "Portfolio website for Khan Muhammad, showcasing work, experience, blog, and contact details.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070d09",
+  "theme_color": "#070d09",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

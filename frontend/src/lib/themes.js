@@ -12,8 +12,9 @@ export const THEMES = [
             en: ["Dual shadows", "Low contrast", "Monochrome", "Rounded"],
             ur: ["دوہرے سائے", "کم کنٹراسٹ", "یک رنگ", "گول کنارے"],
         },
-        swatch: ["#e0e5ec", "#5b5ee9", "#a3b1c6"],
+        swatch: ["#050b07", "#3b82f6", "#93c5fd"],
         year: "2019",
+        colorModes: ["light", "dark"],
     },
     {
         id: "minimalism",
@@ -29,6 +30,7 @@ export const THEMES = [
         },
         swatch: ["#fafafa", "#111113", "#e6e6e9"],
         year: "1960s →",
+        colorModes: ["light", "dark"],
     },
     {
         id: "maximalism",
@@ -44,6 +46,7 @@ export const THEMES = [
         },
         swatch: ["#fff3d6", "#ff2d75", "#7c3aed"],
         year: "2021",
+        colorModes: ["light", "dark"],
     },
     {
         id: "glassmorphism",
@@ -59,6 +62,7 @@ export const THEMES = [
         },
         swatch: ["#7f7fd5", "#86a8e7", "#91eae4"],
         year: "2020",
+        colorModes: ["light", "dark"],
     },
     {
         id: "brutalism",
@@ -74,6 +78,7 @@ export const THEMES = [
         },
         swatch: ["#fffdf5", "#111111", "#ff5f1f"],
         year: "2018",
+        colorModes: ["light", "dark"],
     },
     {
         id: "claymorphism",
@@ -89,6 +94,7 @@ export const THEMES = [
         },
         swatch: ["#e8dcff", "#7c5cff", "#ffb4d8"],
         year: "2021",
+        colorModes: ["light", "dark"],
     },
     {
         id: "material",
@@ -104,6 +110,7 @@ export const THEMES = [
         },
         swatch: ["#f4f6fa", "#1a73e8", "#dde3ea"],
         year: "2014",
+        colorModes: ["light", "dark"],
     },
     {
         id: "cyberpunk",
@@ -119,24 +126,10 @@ export const THEMES = [
         },
         swatch: ["#0a0a14", "#00f0ff", "#ff00a0"],
         year: "2077",
-    },
-    {
-        id: "voltagent",
-        name: { en: "VoltAgent", ur: "ولٹ ایجنٹ" },
-        tagline: { en: "Void-black · emerald terminal", ur: "خالی سیاہ · زرد سبز ٹرمینل" },
-        desc: {
-            en: "A deep dark interface with emerald accents, subtle borders, and terminal-like precision inspired by modern AI product design.",
-            ur: "گہرا سیاہ انٹرفیس، سبز رنگ کے نمایاں اجزاء، باریک کنارے اور ٹرمینل نما درستگی — جدید AI پروڈکٹ ڈیزائن سے متاثر۔",
-        },
-        traits: {
-            en: ["Void black", "Emerald glow", "Terminal UI", "Minimal chrome"],
-            ur: ["خالی سیاہ", "سبز چمک", "ٹرمینل یو آئی", "کم کروم"],
-        },
-        swatch: ["#07110f", "#34d399", "#10b981"],
-        year: "2025",
+        colorModes: ["dark"],
     },
 ];
-export const DEFAULT_THEME = "voltagent";
+export const DEFAULT_THEME = "neumorphism";
 export function getTheme(id) {
     return THEMES.find((t) => t.id === id) ?? THEMES[0];
 }

@@ -1,7 +1,9 @@
+import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { DEFAULT_CONTENT, mergeContent } from "../lib/content";
 import { localizeContent } from "../lib/i18n";
-import { api, detectBackend } from "../lib/api";
+import { detectBackend } from "../lib/api";
+import { contentService } from "../features/content/contentService";
 import { useLang } from "./lang";
 const STORAGE_KEY = "km-content-v1";
 const Ctx = createContext(null);
@@ -26,7 +28,7 @@ export function ContentProvider({ children }) {
         const hasBackend = await detectBackend();
         if (hasBackend) {
             setMode("api");
-            const res = await api.content();
+            const res = await contentService.get();
             if (res) {
                 setContent(mergeContent(DEFAULT_CONTENT, res.content));
                 setSource("api");
@@ -66,7 +68,7 @@ export function ContentProvider({ children }) {
     }, [mode]);
     const save = useCallback(async (next) => {
         if (mode === "api") {
-            const res = await api.saveContent(next);
+            const res = await contentService.save(next);
             setUpdatedAt(res.updated_at);
             setContent(next);
             setSource("api");
@@ -78,7 +80,7 @@ export function ContentProvider({ children }) {
         setUpdatedAt(new Date().toISOString());
     }, [mode]);
     const value = useMemo(() => ({ content, ready, mode, source, updatedAt, save, reload }), [content, ready, mode, source, updatedAt, save, reload]);
-    return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+    return _jsx(Ctx.Provider, { value: value, children: children });
 }
 export function useSiteContent() {
     const ctx = useContext(Ctx);

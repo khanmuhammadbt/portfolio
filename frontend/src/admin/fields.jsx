@@ -1,48 +1,25 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ImageUp, Plus, Trash2, X } from "lucide-react";
 import { ICON_CHOICES } from "../lib/icons";
-export const inputCls = "w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white placeholder:text-slate-400 shadow-inner shadow-black/20 transition focus:border-emerald-400/60 focus:outline-none focus:ring-2 focus:ring-emerald-400/20";
+export const inputCls = "neu-inset-sm w-full rounded-xl bg-transparent px-4 py-2.5 text-sm outline-none ring-neu-accent/0 transition-shadow focus:ring-2 focus:ring-neu-accent/50";
 export function Field({ label, children }) {
-    return (<label className="block">
-      <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300">
-        {label}
-      </span>
-      {children}
-    </label>);
+    return (_jsxs("label", { className: "block", children: [_jsx("span", { className: "mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-neu-muted", children: label }), children] }));
 }
 export function TextInput(props) {
-    return <input {...props} className={inputCls}/>;
+    return _jsx("input", { ...props, className: inputCls });
 }
 export function TextArea(props) {
-    return <textarea rows={3} {...props} className={`${inputCls} resize-y`}/>;
+    return _jsx("textarea", { rows: 3, ...props, className: `${inputCls} resize-y` });
 }
 export function NumInput(props) {
-    return <input type="number" {...props} className={inputCls}/>;
+    return _jsx("input", { type: "number", ...props, className: inputCls });
 }
 export function ColorInput({ value, onChange }) {
-    const safe = toColorHex(value);
-    return (<div className="flex items-center gap-2">
-      <label className="neu-inset-sm grid size-11 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-xl p-1 transition-transform duration-200 hover:scale-105 active:scale-95" title="Pick a color">
-        <input type="color" value={safe} onChange={(e) => onChange(e.target.value)} className="size-full cursor-pointer appearance-none rounded-lg border-0 bg-transparent p-0"/>
-      </label>
-      <input value={value} onFocus={(e) => e.target.select()} onBlur={(e) => onChange(toColorHex(e.target.value))} onChange={(e) => onChange(e.target.value)} className={inputCls} spellCheck={false}/>
-    </div>);
+    return (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("span", { className: "neu-inset-sm grid size-10 shrink-0 place-items-center rounded-xl p-1.5", children: _jsx("input", { type: "color", value: value, onChange: (e) => onChange(e.target.value), className: "size-full cursor-pointer appearance-none rounded-lg bg-transparent" }) }), _jsx("input", { value: value, onChange: (e) => onChange(e.target.value), className: inputCls })] }));
 }
 export function IconSelect({ value, onChange }) {
-    return (<select value={value} onChange={(e) => onChange(e.target.value)} className={`${inputCls} cursor-pointer`}>
-      {ICON_CHOICES.map((k) => (<option key={k} value={k}>
-          {k}
-        </option>))}
-    </select>);
-}
-/** Normalize a color to #rrggbb (native color input needs exactly this) */
-function toColorHex(v) {
-    const t = v.trim().replace(/^#/, "");
-    if (/^[0-9a-fA-F]{3}$/.test(t))
-        return `#${t[0]}${t[0]}${t[1]}${t[1]}${t[2]}${t[2]}`.toLowerCase();
-    if (/^[0-9a-fA-F]{6}$/.test(t))
-        return `#${t}`.toLowerCase();
-    return "#5b5ee9";
+    return (_jsx("select", { value: value, onChange: (e) => onChange(e.target.value), className: `${inputCls} cursor-pointer`, children: ICON_CHOICES.map((k) => (_jsx("option", { value: k, children: k }, k))) }));
 }
 /** Image picker: file upload (auto-resized & JPEG-compressed client-side),
  *  URL paste, and remove. Stores a data-URL string in the content. */
@@ -93,38 +70,12 @@ export function ImageUpload({ value, onChange, fallbackLabel = "Built-in photo",
         };
         reader.readAsDataURL(file);
     };
-    return (<div className="flex flex-col gap-3">
-      <div className="flex items-start gap-4">
-        {/* preview */}
-        <span className="neu-inset-sm grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl">
-          {value ? (<img src={value} alt="Selected portrait preview" width={96} height={96} decoding="async" className="size-full object-cover"/>) : (<span className="px-2 text-center text-[10px] font-semibold uppercase tracking-wider text-neu-muted">
-              {fallbackLabel}
-            </span>)}
-        </span>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f)
-                handleFile(f);
-            e.target.value = "";
-        }}/>
-          <button type="button" onClick={() => fileRef.current?.click()} disabled={loading} className="btn-primary inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold disabled:opacity-50">
-            <ImageUp className="size-4"/>
-            {loading ? "Processing…" : value ? "Change image" : "Upload image"}
-          </button>
-          {value && (<button type="button" onClick={() => onChange("")} className="press inline-flex w-fit items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-red-400">
-              <X className="size-3.5"/> Remove
-            </button>)}
-          <p className="text-[10px] leading-relaxed text-neu-muted">
-            JPG/PNG/WebP — 640px tak auto-resize + compress ho jayegi.
-          </p>
-        </div>
-      </div>
-
-      <input value={value.startsWith("data:") ? "" : value} placeholder="ya image ka URL paste karein (https://…)" onChange={(e) => onChange(e.target.value)} className={inputCls}/>
-      {error && <p className="text-xs text-red-400">{error}</p>}
-    </div>);
+    return (_jsxs("div", { className: "flex flex-col gap-3", children: [_jsxs("div", { className: "flex items-start gap-4", children: [_jsx("span", { className: "neu-inset-sm grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl", children: value ? (_jsx("img", { src: value, alt: "preview", className: "size-full object-cover" })) : (_jsx("span", { className: "px-2 text-center text-[10px] font-semibold uppercase tracking-wider text-neu-muted", children: fallbackLabel })) }), _jsxs("div", { className: "flex min-w-0 flex-1 flex-col gap-2", children: [_jsx("input", { ref: fileRef, type: "file", accept: "image/*", className: "hidden", onChange: (e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f)
+                                        handleFile(f);
+                                    e.target.value = "";
+                                } }), _jsxs("button", { type: "button", onClick: () => fileRef.current?.click(), disabled: loading, className: "btn-primary inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold disabled:opacity-50", children: [_jsx(ImageUp, { className: "size-4" }), loading ? "Processing…" : value ? "Change image" : "Upload image"] }), value && (_jsxs("button", { type: "button", onClick: () => onChange(""), className: "press inline-flex w-fit items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-red-400", children: [_jsx(X, { className: "size-3.5" }), " Remove"] })), _jsx("p", { className: "text-[10px] leading-relaxed text-neu-muted", children: "JPG/PNG/WebP \u2014 640px tak auto-resize + compress ho jayegi." })] })] }), _jsx("input", { value: value.startsWith("data:") ? "" : value, placeholder: "ya image ka URL paste karein (https://\u2026)", onChange: (e) => onChange(e.target.value), className: inputCls }), error && _jsx("p", { className: "text-xs text-red-400", children: error })] }));
 }
 export function ListEditor({ items, onChange, makeNew, addLabel, renderItem }) {
     const swap = (i, j) => {
@@ -136,23 +87,5 @@ export function ListEditor({ items, onChange, makeNew, addLabel, renderItem }) {
     };
     const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
     const updateAt = (i, patch) => onChange(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
-    return (<div className="flex flex-col gap-4">
-      {items.map((it, i) => (<div key={i} className="neu-sm relative rounded-2xl p-5">
-          <div className="absolute -left-2 -top-2 flex gap-1.5">
-            <button type="button" onClick={() => swap(i, i - 1)} aria-label="Move up" className="press grid size-8 place-items-center rounded-full text-neu-muted">
-              <ArrowUp className="size-3.5"/>
-            </button>
-            <button type="button" onClick={() => swap(i, i + 1)} aria-label="Move down" className="press grid size-8 place-items-center rounded-full text-neu-muted">
-              <ArrowDown className="size-3.5"/>
-            </button>
-          </div>
-          <button type="button" onClick={() => remove(i)} aria-label="Delete" className="press absolute -right-2 -top-2 grid size-8 place-items-center rounded-full text-red-400">
-            <Trash2 className="size-3.5"/>
-          </button>
-          {renderItem(it, i, (patch) => updateAt(i, patch))}
-        </div>))}
-      <button type="button" onClick={() => onChange([...items, makeNew()])} className="press inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-neu-muted">
-        <Plus className="size-4"/> {addLabel}
-      </button>
-    </div>);
+    return (_jsxs("div", { className: "flex flex-col gap-4", children: [items.map((it, i) => (_jsxs("div", { className: "neu-sm relative rounded-2xl p-5", children: [_jsxs("div", { className: "absolute -left-2 -top-2 flex gap-1.5", children: [_jsx("button", { type: "button", onClick: () => swap(i, i - 1), "aria-label": "Move up", className: "press grid size-8 place-items-center rounded-full text-neu-muted", children: _jsx(ArrowUp, { className: "size-3.5" }) }), _jsx("button", { type: "button", onClick: () => swap(i, i + 1), "aria-label": "Move down", className: "press grid size-8 place-items-center rounded-full text-neu-muted", children: _jsx(ArrowDown, { className: "size-3.5" }) })] }), _jsx("button", { type: "button", onClick: () => remove(i), "aria-label": "Delete", className: "press absolute -right-2 -top-2 grid size-8 place-items-center rounded-full text-red-400", children: _jsx(Trash2, { className: "size-3.5" }) }), renderItem(it, i, (patch) => updateAt(i, patch))] }, i))), _jsxs("button", { type: "button", onClick: () => onChange([...items, makeNew()]), className: "press inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-neu-muted", children: [_jsx(Plus, { className: "size-4" }), " ", addLabel] })] }));
 }

@@ -96,6 +96,7 @@ export const DEFAULT_CONTENT = {
             },
         ],
     },
+    blogPosts: [],
     contact: {
         eyebrow: "Get In Touch",
         headingA: "Let's press an idea",
