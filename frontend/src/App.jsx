@@ -29,6 +29,47 @@ function useHashRoute() {
     }, [hash]);
     return hash.replace(/^#\/?/, "");
 }
+function SkeletonBlock({ className }) {
+    return _jsx("div", { className: cn("neu-inset-sm animate-pulse opacity-60", className) });
+}
+function SiteSkeleton() {
+    return (_jsxs("div", { role: "status", "aria-label": "Loading site", className: "min-h-screen overflow-hidden px-4 sm:px-6", children: [
+        _jsxs("header", { "aria-hidden": "true", className: "mx-auto flex h-24 max-w-6xl items-center justify-between", children: [
+            _jsx(SkeletonBlock, { className: "h-10 w-36 rounded-full" }),
+            _jsxs("div", { className: "hidden items-center gap-6 sm:flex", children: [
+                _jsx(SkeletonBlock, { className: "h-3 w-14 rounded-full" }),
+                _jsx(SkeletonBlock, { className: "h-3 w-16 rounded-full" }),
+                _jsx(SkeletonBlock, { className: "h-3 w-12 rounded-full" }),
+                _jsx(SkeletonBlock, { className: "h-10 w-10 rounded-full" }),
+            ] }),
+        ] }),
+        _jsxs("main", { "aria-hidden": "true", className: "mx-auto grid min-h-[calc(100vh-6rem)] w-full max-w-6xl items-center gap-14 py-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10", children: [
+            _jsxs("div", { className: "flex flex-col items-start", children: [
+                _jsx(SkeletonBlock, { className: "h-8 w-40 rounded-full" }),
+                _jsxs("div", { className: "mt-8 w-full max-w-2xl space-y-4", children: [
+                    _jsx(SkeletonBlock, { className: "h-12 w-4/5 rounded-xl sm:h-16" }),
+                    _jsx(SkeletonBlock, { className: "h-12 w-3/5 rounded-xl sm:h-16" }),
+                ] }),
+                _jsx(SkeletonBlock, { className: "mt-7 h-6 w-64 rounded-full" }),
+                _jsxs("div", { className: "mt-5 w-full max-w-xl space-y-3", children: [
+                    _jsx(SkeletonBlock, { className: "h-4 w-full rounded-full" }),
+                    _jsx(SkeletonBlock, { className: "h-4 w-11/12 rounded-full" }),
+                    _jsx(SkeletonBlock, { className: "h-4 w-2/3 rounded-full" }),
+                ] }),
+                _jsxs("div", { className: "mt-9 flex flex-wrap gap-4", children: [
+                    _jsx(SkeletonBlock, { className: "h-12 w-36 rounded-full" }),
+                    _jsx(SkeletonBlock, { className: "h-12 w-36 rounded-full" }),
+                ] }),
+                _jsxs("div", { className: "mt-9 flex gap-3", children: [
+                    _jsx(SkeletonBlock, { className: "size-11 rounded-full" }),
+                    _jsx(SkeletonBlock, { className: "size-11 rounded-full" }),
+                    _jsx(SkeletonBlock, { className: "size-11 rounded-full" }),
+                ] }),
+            ] }),
+            _jsx("div", { className: "mx-auto w-full max-w-sm", children: _jsx(SkeletonBlock, { className: "aspect-square w-full rounded-full" }) }),
+        ] }),
+    ] }));
+}
 function Shell({ dark, route, onToggle, chatReady }) {
     const { lang } = useLang();
     const { ready } = useSiteContent();
@@ -39,15 +80,7 @@ function Shell({ dark, route, onToggle, chatReady }) {
     // admin panel stays clean LTR in every mode
     const ur = lang === "ur" && !isAdmin;
     if (!ready && !isAdmin) {
-        return _jsx("div", {
-            role: "status",
-            "aria-label": "Loading site",
-            className: "grid min-h-screen place-items-center text-neu-accent",
-            children: _jsx("span", {
-                "aria-hidden": "true",
-                className: "size-8 animate-spin rounded-full border-2 border-current border-r-transparent",
-            }),
-        });
+        return _jsx(SiteSkeleton, {});
     }
     return (_jsxs("div", { dir: ur ? "rtl" : "ltr", "data-theme": isAdmin ? "neumorphism" : undefined, style: isAdmin ? { background: "var(--bg)" } : undefined, className: cn("relative min-h-screen min-w-0 overflow-x-clip font-body text-neu-text", ur && "ur-scope"), children: [!isAdmin && _jsx(Navbar, { dark: dark, onToggle: onToggle }), _jsx(Suspense, { fallback: null, children: isAdmin ? (_jsx(AdminApp, { dark: dark, onToggle: onToggle })) : isThemes ? (_jsx(ThemesPage, {})) : isBlog ? (_jsx(BlogPage, { slug: route.split("/")[1] || null })) : (_jsxs(_Fragment, { children: [_jsx(PortfolioPage, {}), chatReady && _jsx(Suspense, { fallback: null, children: _jsx(ChatBot, {}) })] })) })] }));
 }
