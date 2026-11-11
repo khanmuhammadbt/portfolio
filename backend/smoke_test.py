@@ -2,6 +2,7 @@
 import os
 import sys
 import tempfile
+from unittest.mock import patch
 
 os.environ["DATABASE_URL"] = f"sqlite:///{os.path.join(tempfile.mkdtemp(), 'test.db')}"
 sys.dont_write_bytecode = True
@@ -12,6 +13,7 @@ from flask_migrate import downgrade, upgrade  # noqa: E402
 from app.models.auth_models import AdminUser, AuthSession, LoginAttempt  # noqa: E402
 from app.models.audit_models import AuditLog  # noqa: E402
 from reset_admin_password import reset_admin_password  # noqa: E402
+from sqlalchemy.exc import OperationalError  # noqa: E402
 
 with server.app.app_context():
     upgrade()
@@ -29,6 +31,48 @@ def check(name, cond):
     print(f"  ok - {name}")
 
 
+def fail_with_database_error():
+    raise OperationalError("SELECT 1", {}, RuntimeError("sensitive-detail"))
+
+
+server.app.add_url_rule(
+    "/api/test-db-failure",
+    "test_db_failure",
+    fail_with_database_error,
+)
+
+with patch.dict(os.environ, {"VERCEL": "1"}):
+    os.environ.pop("DATABASE_URL", None)
+    try:
+        server.create_app()
+        missing_vercel_database_url = False
+    except RuntimeError as error:
+        missing_vercel_database_url = "DATABASE_URL" in str(error)
+check("Vercel requires a hosted database URL", missing_vercel_database_url)
+
+with patch.dict(os.environ, {}):
+    os.environ.pop("DATABASE_URL", None)
+    os.environ.pop("VERCEL", None)
+    local_app = server.create_app()
+check(
+    "local development defaults to SQLite",
+    local_app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite:///"),
+)
+
+with patch.dict(os.environ, {"DATABASE_URL": "postgres://user:pass@db.example/app"}):
+    postgres_app = server.create_app()
+check(
+    "PostgreSQL URL normalized to psycopg",
+    postgres_app.config["SQLALCHEMY_DATABASE_URI"]
+    == "postgresql+psycopg://user:pass@db.example/app",
+)
+check(
+    "PostgreSQL serverless pool is bounded",
+    postgres_app.config["SQLALCHEMY_ENGINE_OPTIONS"]["pool_size"] == 1
+    and postgres_app.config["SQLALCHEMY_ENGINE_OPTIONS"]["max_overflow"] == 0,
+)
+
+
 # ---------- health + content seed ----------
 r = c.get("/api/health")
 check("health 200", r.status_code == 200)
@@ -42,6 +86,17 @@ check("mutation without session -> 401", r.status_code == 401)
 r = c.get("/api/auth/csrf")
 check("csrf issued", r.status_code == 200 and len(r.get_json()["csrf_token"]) > 20)
 token = r.get_json()["csrf_token"]
+with server.app.app_context():
+    csrf_session = AuthSession.query.filter_by(csrf_token=token).one()
+    csrf_session_id = csrf_session.id
+    initial_last_seen = csrf_session.last_seen_at
+    check("CSRF session created in database", csrf_session.admin_id is None)
+
+r = c.get("/api/auth/me")
+check("anonymous session remains readable", r.status_code == 401)
+with server.app.app_context():
+    csrf_session = db.session.get(AuthSession, csrf_session_id)
+    check("session read and updated across requests", csrf_session is not None and csrf_session.last_seen_at >= initial_last_seen)
 
 r = c.post("/api/auth/login", json={"username": "admin", "password": "bantech123"})
 check("login w/o CSRF header -> 403", r.status_code == 403 and r.get_json()["code"] == "csrf_failed")
@@ -80,6 +135,11 @@ r = c.post("/api/auth/login", json={"username": "admin", "password": "bantech123
 body = r.get_json()
 check("valid login -> 200", r.status_code == 200)
 check("CSRF rotated on login", body["csrf_token"] != token and len(body["csrf_token"]) > 20)
+with server.app.app_context():
+    check("login replaces anonymous session", db.session.get(AuthSession, csrf_session_id) is None)
+    admin_user = AdminUser.query.filter_by(username="admin").one()
+    authenticated_session = AuthSession.query.filter_by(admin_id=admin_user.id).one()
+    authenticated_session_id = authenticated_session.id
 with server.app.app_context():
     login_event = AuditLog.query.filter_by(event="login_ok").order_by(AuditLog.id.desc()).first()
     check(
@@ -120,6 +180,8 @@ token3 = r.get_json()["csrf_token"]
 # ---------- logout ----------
 r = c.post("/api/auth/logout", json={}, headers={"X-CSRF-Token": token3})
 check("logout", r.status_code == 200)
+with server.app.app_context():
+    check("logout deletes persistent session", db.session.get(AuthSession, authenticated_session_id) is None)
 r = c.get("/api/auth/me")
 check("session destroyed after logout", r.status_code == 401)
 
@@ -155,7 +217,16 @@ check("local reset revokes existing sessions", reset_admin_password("admin", "Ne
 with server.app.app_context():
     check("reset removed admin sessions", AuthSession.query.filter_by(admin_id=user.id).count() == 0)
 
-# ---------- security headers ----------
+    # ---------- safe database failure response ----------
+    r = c.get("/api/test-db-failure")
+    check(
+        "database error response is generic",
+        r.status_code == 503
+        and r.get_json()["code"] == "database_unavailable"
+        and "sensitive-detail" not in r.get_data(as_text=True),
+    )
+
+    # ---------- security headers ----------
 r = c.get("/api/health")
 h = r.headers
 check("security headers", h.get("X-Frame-Options") == "DENY" and h.get("X-Content-Type-Options") == "nosniff" and "Content-Security-Policy" in h)

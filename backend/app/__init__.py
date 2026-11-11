@@ -4,6 +4,7 @@ import json
 import os
 
 from flask import Flask, g, jsonify, request, send_from_directory
+from sqlalchemy.exc import OperationalError
 
 from .extensions import db, migrate
 from .models import AdminUser, SiteContentRow
@@ -17,9 +18,25 @@ DIST_DIR = os.path.normpath(os.path.join(BASE_DIR, os.environ.get("DIST_DIR", ".
 
 def create_app() -> Flask:
     application = Flask(__name__, static_folder=None)
-    application.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-        "DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'cms.db')}"
-    )
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url is None:
+        if os.environ.get("VERCEL") == "1":
+            raise RuntimeError("DATABASE_URL is required for Vercel deployments.")
+        database_url = f"sqlite:///{os.path.join(BASE_DIR, 'cms.db')}"
+    elif database_url.startswith("postgres://"):
+        database_url = "postgresql+psycopg://" + database_url[len("postgres://"):]
+    elif database_url.startswith("postgresql://"):
+        database_url = "postgresql+psycopg://" + database_url[len("postgresql://"):]
+
+    application.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    if database_url.startswith("postgresql+psycopg://"):
+        application.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "pool_pre_ping": True,
+            "pool_recycle": 300,
+            "pool_size": 1,
+            "max_overflow": 0,
+            "pool_timeout": 5,
+        }
     application.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     application.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024
     application.config["JSON_SORT_KEYS"] = False
@@ -65,6 +82,20 @@ def create_app() -> Flask:
     @application.errorhandler(413)
     def too_large(_error):
         return jsonify({"code": "too_large", "message": "Request too large."}), 413
+
+    @application.errorhandler(OperationalError)
+    def database_unavailable(error):
+        application.logger.error(
+            "Database operation failed (%s)", type(error).__name__
+        )
+        if request.path.startswith("/api/"):
+            return jsonify(
+                {
+                    "code": "database_unavailable",
+                    "message": "Database temporarily unavailable.",
+                }
+            ), 503
+        return "Service temporarily unavailable.", 503
 
     @application.errorhandler(404)
     def not_found(_error):
