@@ -75,6 +75,14 @@ cd ..\backend
 
 Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/#/admin`.
 
+## Offline mode
+
+The production frontend build includes a content-versioned service worker that precaches the built site and the standalone offline page, styles, game script, and icon. Its cache version changes automatically when offline assets change. The offline page uses no remote assets. When the browser fires an `offline` event, the app opens that page; the service worker also serves it for navigations that fail while offline. When an `online` event fires, the offline page automatically returns to the page that was open before the interruption.
+
+To test offline mode, build and run the production preview (`npm run build`, then `npm run preview` from `frontend`) or run the Flask production-style server above. Open the site once while online and wait for the service worker to install. In browser DevTools, use **Network → Offline** (or disconnect the device), then reload or navigate to another page. The offline page and game should load; test jumping with Space/Arrow Up or by tapping the game, and verify the best score survives a reload. Turn networking back on to verify the site returns automatically.
+
+Service workers require HTTPS in deployment (localhost is allowed), and the site must be hosted at the root path as configured by this project. The browser's online/offline events report network availability, which may not always guarantee that a particular server or API is reachable.
+
 ## Admin access
 
 The default first-run credentials are:

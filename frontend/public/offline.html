@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07100b" />
+    <meta name="description" content="You're offline. Stay a while and play a little game." />
+    <title>Offline — Khan Muhammad</title>
+    <link rel="icon" type="image/svg+xml" href="/offline-icon.svg" />
+    <link rel="stylesheet" href="/offline.css" />
+    <script src="/offline.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Khan Muhammad home">
+          <span class="brand-mark" aria-hidden="true">K</span>
+          <span>KHAN<span class="brand-dot">.</span></span>
+        </a>
+        <div class="connection-pill" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="connection-label">You're offline</span>
+        </div>
+      </header>
+
+      <section class="offline-card" aria-labelledby="offline-title">
+        <div class="intro">
+          <div class="wifi-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M8 23.5a36 36 0 0 1 43.8-4.1" />
+              <path d="M15.5 32a25 25 0 0 1 24.9-4.8" />
+              <path d="M23 40.4a14 14 0 0 1 8.8-3.1" />
+              <circle cx="32" cy="49" r="2.5" />
+              <path class="wifi-slash" d="m13 12 38 40" />
+            </svg>
+          </div>
+          <p class="eyebrow"><span></span> A LITTLE PAUSE IN THE CONNECTION</p>
+          <h1 id="offline-title">Oops! You're Offline</h1>
+          <p class="description">Your internet connection seems to be lost.</p>
+          <p class="friendly">Don't worry! You can play a game while waiting.</p>
+        </div>
+
+        <section class="game-panel" aria-label="Dinosaur Runner game">
+          <div class="game-heading">
+            <div>
+              <p class="game-kicker">THE WAITING GAME</p>
+              <h2>Dino Runner<span>.</span></h2>
+            </div>
+            <div class="scores" aria-label="Game scores">
+              <div class="score-box">
+                <span>SCORE</span>
+                <strong id="score" aria-live="polite">00000</strong>
+              </div>
+              <div class="score-box best-score">
+                <span>BEST</span>
+                <strong id="best-score">00000</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-frame">
+            <canvas id="game-canvas" width="720" height="190" role="img" tabindex="0" aria-label="Dinosaur running game. Press Space or Arrow Up to jump over obstacles."></canvas>
+            <div id="game-message" class="game-message">
+              <span id="message-kicker">READY WHEN YOU ARE</span>
+              <strong id="message-title">Let's make the wait fly.</strong>
+              <span id="message-hint">Press Space or tap to jump</span>
+            </div>
+          </div>
+          <div class="game-controls">
+            <span class="keyboard-hint"><kbd>SPACE</kbd> / <kbd>↑</kbd> to jump <span class="hint-divider">·</span> Tap the game on mobile</span>
+            <div class="buttons">
+              <button id="restart-button" class="text-button" type="button" hidden>Restart</button>
+              <button id="start-button" class="play-button" type="button">
+                <span>Start running</span>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 6 6-6 6" /></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <span class="footer-line"></span>
+          <p>Your connection will bring you back automatically.</p>
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>

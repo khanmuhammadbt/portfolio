@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Languages, Moon, Sun, Menu, X, ArrowUpRight } from "lucide-react";
 import { cn } from "../utils/cn";
 import { useLocalizedContent as useSiteContent } from "../store/content";
@@ -33,7 +33,7 @@ export default function Navbar({ dark, onToggle }) {
 
   return (
     <header className="fixed inset-x-0 top-4 z-40 px-4 sm:top-5 sm:px-6">
-      <motion.nav
+      <m.nav
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
@@ -72,7 +72,7 @@ export default function Navbar({ dark, onToggle }) {
             className="press inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold text-neu-muted"
           >
             <Languages className="size-4" />
-            <motion.span
+            <m.span
               initial={{ y: 6, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.3 }}
@@ -80,7 +80,7 @@ export default function Navbar({ dark, onToggle }) {
               key={lang}
             >
               {lang === "en" ? "اردو" : "EN"}
-            </motion.span>
+            </m.span>
           </button>
           {canToggleColorMode && (
             <button
@@ -89,7 +89,7 @@ export default function Navbar({ dark, onToggle }) {
               className="press grid size-10 place-items-center rounded-full text-neu-muted"
             >
               <AnimatePresence mode="wait" initial={false}>
-                <motion.span
+                <m.span
                   initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
                   animate={{ rotate: 0, opacity: 1, scale: 1 }}
                   exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
@@ -98,7 +98,7 @@ export default function Navbar({ dark, onToggle }) {
                   key={dark ? "sun" : "moon"}
                 >
                   {dark ? <Sun className="size-4.5" /> : <Moon className="size-4.5" />}
-                </motion.span>
+                </m.span>
               </AnimatePresence>
             </button>
           )}
@@ -117,11 +117,11 @@ export default function Navbar({ dark, onToggle }) {
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
-      </motion.nav>
+      </m.nav>
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.97 }}
@@ -150,7 +150,7 @@ export default function Navbar({ dark, onToggle }) {
                 </a>
               </li>
             </ul>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

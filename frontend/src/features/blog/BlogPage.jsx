@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3 } from "lucide-react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useSiteContent } from "../../store/content";
 
 function formatDate(value) {
@@ -11,7 +11,7 @@ function formatDate(value) {
 
 function PostCard({ post, index }) {
     return (
-        <motion.article
+        <m.article
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
@@ -38,7 +38,7 @@ function PostCard({ post, index }) {
                     Read article <ArrowRight className="size-4 rtl:-scale-x-100" />
                 </a>
             </div>
-        </motion.article>
+        </m.article>
     );
 }
 

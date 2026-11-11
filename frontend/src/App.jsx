@@ -1,15 +1,16 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { domAnimation, LazyMotion } from "framer-motion";
 import { ContentProvider } from "./store/content";
 import { LangProvider, useLang } from "./store/lang";
 import { ThemeStyleProvider } from "./store/theme";
 import { cn } from "./utils/cn";
 import PortfolioPage from "./features/portfolio/PortfolioPage";
-import ThemesPage from "./features/themes/ThemesPage";
 import Navbar from "./components/Navbar";
-import AdminApp from "./admin/AdminApp";
-import ChatBot from "./features/chat/components/ChatBot";
-import BlogPage from "./features/blog/BlogPage";
+const ThemesPage = lazy(() => import("./features/themes/ThemesPage"));
+const AdminApp = lazy(() => import("./admin/AdminApp"));
+const ChatBot = lazy(() => import("./features/chat/components/ChatBot"));
+const BlogPage = lazy(() => import("./features/blog/BlogPage"));
 function useHashRoute() {
     const [hash, setHash] = useState(() => window.location.hash);
     useEffect(() => {
@@ -28,7 +29,7 @@ function useHashRoute() {
     }, [hash]);
     return hash.replace(/^#\/?/, "");
 }
-function Shell({ dark, route, onToggle }) {
+function Shell({ dark, route, onToggle, chatReady }) {
     const { lang } = useLang();
     const isAdmin = route === "admin";
     const isThemes = route === "themes";
@@ -36,14 +37,41 @@ function Shell({ dark, route, onToggle }) {
     // Urdu styling (RTL + Nastaliq) applies to the public site ONLY —
     // admin panel stays clean LTR in every mode
     const ur = lang === "ur" && !isAdmin;
-    return (_jsxs("div", { dir: ur ? "rtl" : "ltr", "data-theme": isAdmin ? "neumorphism" : undefined, style: isAdmin ? { background: "var(--bg)" } : undefined, className: cn("relative min-h-screen min-w-0 overflow-x-clip font-body text-neu-text", ur && "ur-scope"), children: [!isAdmin && _jsx(Navbar, { dark: dark, onToggle: onToggle }), isAdmin ? (_jsx(AdminApp, { dark: dark, onToggle: onToggle })) : isThemes ? (_jsx(ThemesPage, {})) : isBlog ? (_jsx(BlogPage, { slug: route.split("/")[1] || null })) : (_jsxs(_Fragment, { children: [_jsx(PortfolioPage, {}), _jsx(ChatBot, {})] }))] }));
+    return (_jsxs("div", { dir: ur ? "rtl" : "ltr", "data-theme": isAdmin ? "neumorphism" : undefined, style: isAdmin ? { background: "var(--bg)" } : undefined, className: cn("relative min-h-screen min-w-0 overflow-x-clip font-body text-neu-text", ur && "ur-scope"), children: [!isAdmin && _jsx(Navbar, { dark: dark, onToggle: onToggle }), _jsx(Suspense, { fallback: null, children: isAdmin ? (_jsx(AdminApp, { dark: dark, onToggle: onToggle })) : isThemes ? (_jsx(ThemesPage, {})) : isBlog ? (_jsx(BlogPage, { slug: route.split("/")[1] || null })) : (_jsxs(_Fragment, { children: [_jsx(PortfolioPage, {}), chatReady && _jsx(ChatBot, {})] })) })] }));
 }
 export default function App() {
     const route = useHashRoute();
     const [dark, setDark] = useState(() => localStorage.getItem("km-theme") !== "light");
+    const [chatReady, setChatReady] = useState(false);
+    useEffect(() => {
+        const timer = window.setTimeout(() => setChatReady(true), 1000);
+        return () => window.clearTimeout(timer);
+    }, []);
+    useEffect(() => {
+        const showOfflinePage = () => {
+            if (window.location.pathname === "/offline.html") {
+                return;
+            }
+            try {
+                sessionStorage.setItem(
+                    "offline-return-url",
+                    `${window.location.pathname}${window.location.search}${window.location.hash}`,
+                );
+            }
+            catch (error) {
+                console.error("Could not save the current page before opening offline mode.", error);
+            }
+            window.location.replace("/offline.html");
+        };
+        window.addEventListener("offline", showOfflinePage);
+        if (!navigator.onLine) {
+            showOfflinePage();
+        }
+        return () => window.removeEventListener("offline", showOfflinePage);
+    }, []);
     useEffect(() => {
         document.documentElement.classList.toggle("dark", dark);
         localStorage.setItem("km-theme", dark ? "dark" : "light");
     }, [dark]);
-    return (_jsx(LangProvider, { children: _jsx(ThemeStyleProvider, { children: _jsx(ContentProvider, { children: _jsx(Shell, { dark: dark, route: route, onToggle: () => setDark((v) => !v) }) }) }) }));
+    return (_jsx(LangProvider, { children: _jsx(ThemeStyleProvider, { children: _jsx(ContentProvider, { children: _jsx(LazyMotion, { features: domAnimation, children: _jsx(Shell, { dark: dark, route: route, chatReady: chatReady, onToggle: () => setDark((v) => !v) }) }) }) }) }));
 }
