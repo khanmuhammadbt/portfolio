@@ -62,15 +62,31 @@ The frontend can also run in demo mode if the Flask API is unavailable. In that 
 
 Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `#/blog` and open at `#/blog/<slug>`.
 
-## Production-style single-server run
+## Preview the production frontend build
 
-Build the frontend first. The output is written to `frontend/dist` and served by Flask:
+After building the frontend, start Vite's preview server from the `frontend` directory:
 
 ```powershell
 cd frontend
 npm run build
+npm run preview
+```
 
-cd ..\backend
+Open `http://127.0.0.1:4173`. This previews the built frontend only; it does not start the Flask backend.
+
+## Production-style single-server run
+
+To run the full app with Flask serving the built frontend, build it first. `npm run build` writes the output to `frontend/dist` and exits; it does not start a server:
+
+```powershell
+cd frontend
+npm run build
+```
+
+Then, from a terminal at the repository root, start Flask:
+
+```powershell
+cd backend
 ..\venv\Scripts\python.exe -m flask --app app db upgrade
 ..\venv\Scripts\python.exe app.py
 ```

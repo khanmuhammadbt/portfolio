@@ -47,7 +47,8 @@ def create_app() -> Flask:
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; img-src 'self' data: https:; "
-            "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "script-src 'self' 'unsafe-inline'; "
             "font-src 'self' https://fonts.gstatic.com; connect-src 'self'"
         )
         if application.config["SECURE_COOKIE"]:

@@ -159,5 +159,6 @@ with server.app.app_context():
 r = c.get("/api/health")
 h = r.headers
 check("security headers", h.get("X-Frame-Options") == "DENY" and h.get("X-Content-Type-Options") == "nosniff" and "Content-Security-Policy" in h)
+check("CSP allows the configured Google Fonts stylesheet", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com" in h.get("Content-Security-Policy", ""))
 
 print(f"\nALL {PASSED} CHECKS PASSED")
