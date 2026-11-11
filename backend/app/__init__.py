@@ -15,28 +15,15 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DIST_DIR = os.path.normpath(os.path.join(BASE_DIR, os.environ.get("DIST_DIR", "../frontend/dist")))
 
 
-def database_uri() -> str:
-    database_url = os.environ.get("DATABASE_URL")
-    if not database_url:
-        if os.environ.get("VERCEL") == "1":
-            raise RuntimeError("DATABASE_URL must be configured for Vercel deployments.")
-        return f"sqlite:///{os.path.join(BASE_DIR, 'cms.db')}"
-
-    if database_url.startswith("postgres://"):
-        return "postgresql+psycopg://" + database_url.removeprefix("postgres://")
-    if database_url.startswith("postgresql://"):
-        return "postgresql+psycopg://" + database_url.removeprefix("postgresql://")
-    return database_url
-
-
 def create_app() -> Flask:
     application = Flask(__name__, static_folder=None)
-    application.config["SQLALCHEMY_DATABASE_URI"] = database_uri()
+    application.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+        "DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'cms.db')}"
+    )
     application.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     application.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024
     application.config["JSON_SORT_KEYS"] = False
-    secure_cookie_default = "true" if os.environ.get("VERCEL") == "1" else "false"
-    application.config["SECURE_COOKIE"] = os.environ.get("SECURE_COOKIE", secure_cookie_default).lower() == "true"
+    application.config["SECURE_COOKIE"] = os.environ.get("SECURE_COOKIE", "false").lower() == "true"
 
     db.init_app(application)
     migrate.init_app(application, db)
@@ -98,11 +85,7 @@ def bootstrap(application: Flask) -> None:
         using_default_password = False
         if not AdminUser.query.first():
             username = os.environ.get("ADMIN_USERNAME", "admin")
-            password = os.environ.get("ADMIN_PASSWORD")
-            if not password:
-                if os.environ.get("VERCEL") == "1":
-                    raise RuntimeError("ADMIN_PASSWORD must be configured before first production startup.")
-                password = "bantech123"
+            password = os.environ.get("ADMIN_PASSWORD", "bantech123")
             db.session.add(AdminUser(username=username, password_hash=hash_password(password)))
             changed = True
             using_default_password = password == "bantech123"
