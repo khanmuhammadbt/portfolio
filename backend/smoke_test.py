@@ -96,7 +96,10 @@ r = c.get("/api/auth/me")
 check("anonymous session remains readable", r.status_code == 401)
 with server.app.app_context():
     csrf_session = db.session.get(AuthSession, csrf_session_id)
-    check("session read and updated across requests", csrf_session is not None and csrf_session.last_seen_at >= initial_last_seen)
+    check(
+        "session read and updated across requests",
+        csrf_session is not None and csrf_session.last_seen_at >= initial_last_seen,
+    )
 
 r = c.post("/api/auth/login", json={"username": "admin", "password": "bantech123"})
 check("login w/o CSRF header -> 403", r.status_code == 403 and r.get_json()["code"] == "csrf_failed")
@@ -140,7 +143,6 @@ with server.app.app_context():
     admin_user = AdminUser.query.filter_by(username="admin").one()
     authenticated_session = AuthSession.query.filter_by(admin_id=admin_user.id).one()
     authenticated_session_id = authenticated_session.id
-with server.app.app_context():
     login_event = AuditLog.query.filter_by(event="login_ok").order_by(AuditLog.id.desc()).first()
     check(
         "login audit linked to admin",
@@ -217,16 +219,16 @@ check("local reset revokes existing sessions", reset_admin_password("admin", "Ne
 with server.app.app_context():
     check("reset removed admin sessions", AuthSession.query.filter_by(admin_id=user.id).count() == 0)
 
-    # ---------- safe database failure response ----------
-    r = c.get("/api/test-db-failure")
-    check(
-        "database error response is generic",
-        r.status_code == 503
-        and r.get_json()["code"] == "database_unavailable"
-        and "sensitive-detail" not in r.get_data(as_text=True),
-    )
+# ---------- safe database failure response ----------
+r = c.get("/api/test-db-failure")
+check(
+    "database error response is generic",
+    r.status_code == 503
+    and r.get_json()["code"] == "database_unavailable"
+    and "sensitive-detail" not in r.get_data(as_text=True),
+)
 
-    # ---------- security headers ----------
+# ---------- security headers ----------
 r = c.get("/api/health")
 h = r.headers
 check("security headers", h.get("X-Frame-Options") == "DENY" and h.get("X-Content-Type-Options") == "nosniff" and "Content-Security-Policy" in h)
