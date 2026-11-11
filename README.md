@@ -55,12 +55,12 @@ Useful endpoints:
 
 - Website: `http://127.0.0.1:5173`
 - API health check: `http://127.0.0.1:5000/api/health`
-- Admin panel: `http://127.0.0.1:5173/#/admin`
-- Public blog: `http://127.0.0.1:5173/#/blog`
+- Admin panel: `http://127.0.0.1:5173/admin`
+- Public blog: `http://127.0.0.1:5173/blog`
 
 The frontend can also run in demo mode if the Flask API is unavailable. In that mode, editable content is stored in the browser instead of the backend database.
 
-Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `#/blog` and open at `#/blog/<slug>`.
+Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `/blog` and open at `/blog/<slug>`.
 
 ## Production-style single-server run
 
@@ -75,13 +75,34 @@ cd ..\backend
 ..\venv\Scripts\python.exe app.py
 ```
 
-Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/#/admin`.
+Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/admin`.
 
 ## Vercel multi-service deployment
 
 The root [vercel.json](./vercel.json) configures two services: `backend` (Flask, rooted at `backend/`) and `frontend` (Vite, rooted at `frontend/`). Requests under `/api/` are routed to the backend; all other paths are routed to the frontend. The frontend already makes same-origin `/api/...` requests, so no service binding is needed.
 
-Configure deployment environment variables in the Vercel project settings. In particular, the app defaults to a SQLite database at `backend/cms.db`; use a durable database appropriate for serverless deployments rather than relying on that local-file default for persistent production data.
+### Neon PostgreSQL setup
+
+1. Create a Neon project and database. In Neon, copy the **pooled** connection string for the production runtime. Keep it private; do not commit it to the repository.
+2. In Vercel **Project Settings → Environment Variables**, set these for **Production**:
+   - `DATABASE_URL`: the Neon pooled connection string.
+   - `ADMIN_USERNAME`: the initial admin username.
+   - `ADMIN_PASSWORD`: a strong, unique initial admin password.
+   - `SECURE_COOKIE`: `true`.
+3. Before sending traffic to the new database, apply the schema once from the repository root. Use Neon's **direct** connection string for this migration:
+
+   ```powershell
+   $env:DATABASE_URL = "postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
+   Push-Location backend
+   ..\venv\Scripts\python.exe -m flask --app app db upgrade
+   Pop-Location
+   Remove-Item Env:DATABASE_URL
+   ```
+
+   The application accepts both `postgres://` and `postgresql://` URLs and uses the installed Psycopg 3 driver. Keep the pooled Neon URL set in Vercel for runtime connections; use the direct URL for schema migrations.
+4. Deploy the project. Verify `/api/content` loads, then sign in to `/admin` with the initial credentials and change the password.
+
+Vercel deployments intentionally fail fast if `DATABASE_URL` is missing. On first startup, they also require `ADMIN_PASSWORD` rather than creating the local-development default account. Local development continues to use `backend/cms.db` and its documented default credentials when no environment variables are set.
 
 ## Offline mode
 
@@ -107,7 +128,7 @@ Change the password from the admin Security tab. For a new deployment, set `ADMI
 | `PORT` | `5000` | Flask server port |
 | `ADMIN_USERNAME` | `admin` | First-run admin username |
 | `ADMIN_PASSWORD` | `bantech123` | First-run admin password |
-| `DATABASE_URL` | `sqlite:///backend/cms.db` | Database connection |
+| `DATABASE_URL` | `sqlite:///backend/cms.db` locally; required on Vercel | Database connection (Neon PostgreSQL in production) |
 | `SECURE_COOKIE` | `false` | Enable secure cookies when using HTTPS |
 | `CHAT_API_KEY` | unset | Optional server-side chatbot API key |
 | `CHAT_MODEL` | `gemini-3.5-flash-lite` | Chatbot model name |

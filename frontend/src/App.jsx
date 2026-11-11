@@ -11,23 +11,73 @@ const ThemesPage = lazy(() => import("./features/themes/ThemesPage"));
 const AdminApp = lazy(() => import("./admin/AdminApp"));
 const ChatBot = lazy(() => import("./features/chat/components/ChatBot"));
 const BlogPage = lazy(() => import("./features/blog/BlogPage"));
-function useHashRoute() {
-    const [hash, setHash] = useState(() => window.location.hash);
+
+function resolveHashRoute() {
+    const hash = window.location.hash.replace(/^#\/?/, "");
+    if (!hash) {
+        return null;
+    }
+    if (["admin", "themes", "blog"].includes(hash) || hash.startsWith("blog/")) {
+        return hash;
+    }
+    return null;
+}
+
+function resolvePathRoute() {
+    const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+    if (!path) {
+        return "";
+    }
+    if (path === "admin" || path === "themes") {
+        return path;
+    }
+    if (path === "blog" || path.startsWith("blog/")) {
+        return path;
+    }
+    return "";
+}
+
+function useSiteRoute() {
+    const [route, setRoute] = useState(() => resolveHashRoute() ?? resolvePathRoute());
     useEffect(() => {
-        const onChange = () => {
-            setHash(window.location.hash);
+        const redirectLegacyHashRoute = () => {
+            const legacy = resolveHashRoute();
+            if (!legacy) {
+                return;
+            }
+            const nextPath = `/${legacy}`;
+            if (window.location.pathname !== nextPath) {
+                window.history.replaceState(null, "", nextPath);
+            }
+            setRoute(resolvePathRoute());
         };
-        window.addEventListener("hashchange", onChange);
-        return () => window.removeEventListener("hashchange", onChange);
+
+        const onLocationChange = () => {
+            setRoute(resolveHashRoute() ?? resolvePathRoute());
+        };
+
+        redirectLegacyHashRoute();
+        window.addEventListener("popstate", onLocationChange);
+        window.addEventListener("hashchange", onLocationChange);
+        return () => {
+            window.removeEventListener("popstate", onLocationChange);
+            window.removeEventListener("hashchange", onLocationChange);
+        };
     }, []);
+
     useEffect(() => {
-        if (hash.startsWith("#/") || !hash || hash === "#") {
+        const hash = window.location.hash;
+        if (!hash || hash === "#") {
             window.scrollTo(0, 0);
             return;
         }
-        document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ behavior: "smooth" });
-    }, [hash]);
-    return hash.replace(/^#\/?/, "");
+        const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+        if (target) {
+            target.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [route]);
+
+    return route;
 }
 function SkeletonBlock({ className }) {
     return _jsx("div", { className: cn("neu-inset-sm animate-pulse opacity-60", className) });
@@ -85,7 +135,7 @@ function Shell({ dark, route, onToggle, chatReady }) {
     return (_jsxs("div", { dir: ur ? "rtl" : "ltr", "data-theme": isAdmin ? "neumorphism" : undefined, style: isAdmin ? { background: "var(--bg)" } : undefined, className: cn("relative min-h-screen min-w-0 overflow-x-clip font-body text-neu-text", ur && "ur-scope"), children: [!isAdmin && _jsx(Navbar, { dark: dark, onToggle: onToggle }), _jsx(Suspense, { fallback: null, children: isAdmin ? (_jsx(AdminApp, { dark: dark, onToggle: onToggle })) : isThemes ? (_jsx(ThemesPage, {})) : isBlog ? (_jsx(BlogPage, { slug: route.split("/")[1] || null })) : (_jsxs(_Fragment, { children: [_jsx(PortfolioPage, {}), chatReady && _jsx(Suspense, { fallback: null, children: _jsx(ChatBot, {}) })] })) })] }));
 }
 export default function App() {
-    const route = useHashRoute();
+    const route = useSiteRoute();
     const [dark, setDark] = useState(() => readStorage("km-theme", "dark") !== "light");
     const [chatReady, setChatReady] = useState(false);
     useEffect(() => {

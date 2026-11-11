@@ -34,7 +34,7 @@ function PostCard({ post, index }) {
                 </div>
                 <h2 className="mt-4 font-display text-2xl font-bold leading-tight">{post.title}</h2>
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-neu-muted">{post.excerpt}</p>
-                <a href={`#/blog/${encodeURIComponent(post.slug)}`} className="press mt-6 inline-flex w-fit items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-neu-accent">
+                <a href={`/blog/${encodeURIComponent(post.slug)}`} className="press mt-6 inline-flex w-fit items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-neu-accent">
                     Read article <ArrowRight className="size-4 rtl:-scale-x-100" />
                 </a>
             </div>
@@ -54,7 +54,7 @@ export default function BlogPage({ slug }) {
             <main className="relative min-h-screen px-4 pb-28 pt-32 sm:px-6">
                 <div className="glow absolute left-1/2 top-10 size-[34rem] -translate-x-1/2" />
                 <article className="relative mx-auto max-w-3xl">
-                    <a href="#/blog" className="press inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-neu-muted">
+                    <a href="/blog" className="press inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-neu-muted">
                         <ArrowLeft className="size-4 rtl:-scale-x-100" /> All articles
                     </a>
                     {post ? (
