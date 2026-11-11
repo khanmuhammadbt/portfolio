@@ -75,6 +75,12 @@ cd ..\backend
 
 Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/#/admin`.
 
+## Vercel multi-service deployment
+
+The root [vercel.json](./vercel.json) configures two services: `backend` (Flask, rooted at `backend/`) and `frontend` (Vite, rooted at `frontend/`). Requests under `/api/` are routed to the backend; all other paths are routed to the frontend. The frontend already makes same-origin `/api/...` requests, so no service binding is needed.
+
+Configure deployment environment variables in the Vercel project settings. In particular, the app defaults to a SQLite database at `backend/cms.db`; use a durable database appropriate for serverless deployments rather than relying on that local-file default for persistent production data.
+
 ## Offline mode
 
 The production frontend build includes a content-versioned service worker that precaches the built site and the standalone offline page, styles, game script, and icon. Its cache version changes automatically when offline assets change. The offline page uses no remote assets. When the browser fires an `offline` event, the app opens that page; the service worker also serves it for navigations that fail while offline. When an `online` event fires, the offline page automatically returns to the page that was open before the interruption.

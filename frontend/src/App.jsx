@@ -1,6 +1,6 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { ContentProvider } from "./store/content";
+import { ContentProvider, useSiteContent } from "./store/content";
 import { LangProvider, useLang } from "./store/lang";
 import { ThemeStyleProvider } from "./store/theme";
 import { cn } from "./utils/cn";
@@ -31,13 +31,25 @@ function useHashRoute() {
 }
 function Shell({ dark, route, onToggle, chatReady }) {
     const { lang } = useLang();
+    const { ready } = useSiteContent();
     const isAdmin = route === "admin";
     const isThemes = route === "themes";
     const isBlog = route === "blog" || route.startsWith("blog/");
     // Urdu styling (RTL + Nastaliq) applies to the public site ONLY —
     // admin panel stays clean LTR in every mode
     const ur = lang === "ur" && !isAdmin;
-    return (_jsxs("div", { dir: ur ? "rtl" : "ltr", "data-theme": isAdmin ? "neumorphism" : undefined, style: isAdmin ? { background: "var(--bg)" } : undefined, className: cn("relative min-h-screen min-w-0 overflow-x-clip font-body text-neu-text", ur && "ur-scope"), children: [!isAdmin && _jsx(Navbar, { dark: dark, onToggle: onToggle }), _jsx(Suspense, { fallback: null, children: isAdmin ? (_jsx(AdminApp, { dark: dark, onToggle: onToggle })) : isThemes ? (_jsx(ThemesPage, {})) : isBlog ? (_jsx(BlogPage, { slug: route.split("/")[1] || null })) : (_jsxs(_Fragment, { children: [_jsx(PortfolioPage, {}), chatReady && _jsx(ChatBot, {})] })) })] }));
+    if (!ready && !isAdmin) {
+        return _jsx("div", {
+            role: "status",
+            "aria-label": "Loading site",
+            className: "grid min-h-screen place-items-center text-neu-accent",
+            children: _jsx("span", {
+                "aria-hidden": "true",
+                className: "size-8 animate-spin rounded-full border-2 border-current border-r-transparent",
+            }),
+        });
+    }
+    return (_jsxs("div", { dir: ur ? "rtl" : "ltr", "data-theme": isAdmin ? "neumorphism" : undefined, style: isAdmin ? { background: "var(--bg)" } : undefined, className: cn("relative min-h-screen min-w-0 overflow-x-clip font-body text-neu-text", ur && "ur-scope"), children: [!isAdmin && _jsx(Navbar, { dark: dark, onToggle: onToggle }), _jsx(Suspense, { fallback: null, children: isAdmin ? (_jsx(AdminApp, { dark: dark, onToggle: onToggle })) : isThemes ? (_jsx(ThemesPage, {})) : isBlog ? (_jsx(BlogPage, { slug: route.split("/")[1] || null })) : (_jsxs(_Fragment, { children: [_jsx(PortfolioPage, {}), chatReady && _jsx(Suspense, { fallback: null, children: _jsx(ChatBot, {}) })] })) })] }));
 }
 export default function App() {
     const route = useHashRoute();

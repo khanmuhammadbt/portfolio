@@ -420,6 +420,15 @@ html[data-theme="cyberpunk"] body { background: #0a0a14; }
 }
 .animate-floaty { animation: floaty 5.5s ease-in-out infinite; }
 
+.skill-progress-fill {
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.skill-progress-fill.is-visible {
+  transform: scaleX(1);
+}
+
 @keyframes spin-slow { to { transform: rotate(360deg); } }
 .animate-spin-slow { animation: spin-slow 18s linear infinite; }
 
@@ -439,4 +448,5 @@ html[data-theme="cyberpunk"] body { background: #0a0a14; }
 
 @media (prefers-reduced-motion: reduce) {
   .marquee-track, .animate-floaty, .animate-spin-slow { animation: none; }
+  .skill-progress-fill { transform: none; transition: none; }
 }
