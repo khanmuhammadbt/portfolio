@@ -3,6 +3,10 @@ frontend/dist/
 .vite/
 coverage/
 frontend/coverage/
+.vercel/
+
+# Generated Lighthouse reports
+frontend/lighthouse-*.json
 
 # Python environments and generated files
 venv/
@@ -13,6 +17,8 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .tox/
+.eggs/
+*.egg-info/
 .coverage
 htmlcov/
 

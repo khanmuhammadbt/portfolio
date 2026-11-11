@@ -1,6 +1,6 @@
 # Khan Muhammad Portfolio
 
-Full-stack portfolio and CMS application built with React, Vite, JavaScript, and Flask. The frontend uses `.js` and `.jsx` files; TypeScript is not required.
+Full-stack portfolio and CMS application built with React, Vite, JavaScript, and Flask. The public site uses a skeleton layout while its content loads and supports offline access. The frontend uses `.js` and `.jsx` files; TypeScript is not required.
 
 ## Requirements
 
@@ -15,6 +15,8 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1
 python -m pip install -r backend\requirements.txt
 ```
+
+The root `.gitignore` also excludes generated build output, local databases and environment files, Vercel metadata, and Lighthouse report files.
 
 Install frontend dependencies:
 
