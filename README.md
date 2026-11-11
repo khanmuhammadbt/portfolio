@@ -58,7 +58,7 @@ Useful endpoints:
 - Admin panel: `http://127.0.0.1:5173/admin`
 - Public blog: `http://127.0.0.1:5173/blog`
 
-The frontend can also run in demo mode if the Flask API is unavailable. In that mode, editable content is stored in the browser instead of the backend database.
+The frontend no longer falls back to a browser-only admin demo mode. The Flask API must be running for the admin panel and content save flow to work.
 
 Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `/blog` and open at `/blog/<slug>`.
 

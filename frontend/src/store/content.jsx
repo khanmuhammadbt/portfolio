@@ -14,9 +14,11 @@ function readLocal() {
         return null;
     return mergeContent(DEFAULT_CONTENT, raw);
 }
+const DEMO_MODE_ENABLED = false;
+
 export function ContentProvider({ children }) {
     const [content, setContent] = useState(DEFAULT_CONTENT);
-    const [mode, setMode] = useState("demo");
+    const [mode, setMode] = useState("api");
     const [source, setSource] = useState("default");
     const [updatedAt, setUpdatedAt] = useState(null);
     const [ready, setReady] = useState(false);
@@ -32,6 +34,14 @@ export function ContentProvider({ children }) {
                 setReady(true);
                 return;
             }
+        }
+        if (!DEMO_MODE_ENABLED) {
+            setMode("api");
+            setContent(DEFAULT_CONTENT);
+            setSource("default");
+            setUpdatedAt(null);
+            setReady(true);
+            return;
         }
         setMode("demo");
         const local = readLocal();
