@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Languages, Moon, Sun, Menu, X, ArrowUpRight } from "lucide-react";
 import { cn } from "../utils/cn";
 import { useLocalizedContent as useSiteContent } from "../store/content";

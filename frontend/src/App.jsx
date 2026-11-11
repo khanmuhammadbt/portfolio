@@ -1,6 +1,5 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { domAnimation, LazyMotion } from "framer-motion";
 import { ContentProvider } from "./store/content";
 import { LangProvider, useLang } from "./store/lang";
 import { ThemeStyleProvider } from "./store/theme";
@@ -73,5 +72,5 @@ export default function App() {
         document.documentElement.classList.toggle("dark", dark);
         localStorage.setItem("km-theme", dark ? "dark" : "light");
     }, [dark]);
-    return (_jsx(LangProvider, { children: _jsx(ThemeStyleProvider, { children: _jsx(ContentProvider, { children: _jsx(LazyMotion, { features: domAnimation, children: _jsx(Shell, { dark: dark, route: route, chatReady: chatReady, onToggle: () => setDark((v) => !v) }) }) }) }) }));
+    return (_jsx(LangProvider, { children: _jsx(ThemeStyleProvider, { children: _jsx(ContentProvider, { children: _jsx(Shell, { dark: dark, route: route, chatReady: chatReady, onToggle: () => setDark((v) => !v) }) }) }) }));
 }
