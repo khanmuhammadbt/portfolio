@@ -10,9 +10,9 @@
 - [Contact](https://khanmuhammad.dev/#contact)
 
 ## Writing
-- [Blog](https://khanmuhammad.dev/blog)
+- [Blog](https://khanmuhammad.dev/#/blog)
 
 ## Explore more
-- [Themes](https://khanmuhammad.dev/themes)
+- [Themes](https://khanmuhammad.dev/#/themes)
 - [GitHub](https://github.com/)
 - [LinkedIn](https://www.linkedin.com/)

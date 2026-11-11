@@ -55,12 +55,12 @@ Useful endpoints:
 
 - Website: `http://127.0.0.1:5173`
 - API health check: `http://127.0.0.1:5000/api/health`
-- Admin panel: `http://127.0.0.1:5173/admin`
-- Public blog: `http://127.0.0.1:5173/blog`
+- Admin panel: `http://127.0.0.1:5173/#/admin`
+- Public blog: `http://127.0.0.1:5173/#/blog`
 
-The frontend no longer falls back to a browser-only admin demo mode. The Flask API must be running for the admin panel and content save flow to work.
+The frontend can also run in demo mode if the Flask API is unavailable. In that mode, editable content is stored in the browser instead of the backend database.
 
-Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `/blog` and open at `/blog/<slug>`.
+Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `#/blog` and open at `#/blog/<slug>`.
 
 ## Production-style single-server run
 
@@ -75,7 +75,7 @@ cd ..\backend
 ..\venv\Scripts\python.exe app.py
 ```
 
-Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/admin`.
+Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/#/admin`.
 
 ## Vercel multi-service deployment
 
@@ -100,7 +100,7 @@ The root [vercel.json](./vercel.json) configures two services: `backend` (Flask,
    ```
 
    The application accepts both `postgres://` and `postgresql://` URLs and uses the installed Psycopg 3 driver. Keep the pooled Neon URL set in Vercel for runtime connections; use the direct URL for schema migrations.
-4. Deploy the project. Verify `/api/content` loads, then sign in to `/admin` with the initial credentials and change the password.
+4. Deploy the project. Verify `/api/content` loads, then sign in to `/#/admin` with the initial credentials and change the password.
 
 Vercel deployments intentionally fail fast if `DATABASE_URL` is missing. On first startup, they also require `ADMIN_PASSWORD` rather than creating the local-development default account. Local development continues to use `backend/cms.db` and its documented default credentials when no environment variables are set.
 

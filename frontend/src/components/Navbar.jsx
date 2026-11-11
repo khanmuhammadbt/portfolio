@@ -7,7 +7,7 @@ import { useLang } from "../store/lang";
 import { getTheme } from "../lib/themes";
 import { useThemeStyle } from "../store/theme";
 
-const LINK_HREFS = ["#about", "#skills", "#experience", "#contact", "/blog"];
+const LINK_HREFS = ["#about", "#skills", "#experience", "#contact", "#/blog"];
 
 export default function Navbar({ dark, onToggle }) {
   const [open, setOpen] = useState(false);
