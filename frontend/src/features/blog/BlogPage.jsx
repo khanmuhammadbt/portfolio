@@ -11,7 +11,7 @@ function formatDate(value) {
 
 function PostCard({ post, index }) {
     return (
-        <m.article
+        <motion.article
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
@@ -38,7 +38,7 @@ function PostCard({ post, index }) {
                     Read article <ArrowRight className="size-4 rtl:-scale-x-100" />
                 </a>
             </div>
-        </m.article>
+        </motion.article>
     );
 }
 

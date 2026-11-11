@@ -4,6 +4,7 @@ import { ContentProvider } from "./store/content";
 import { LangProvider, useLang } from "./store/lang";
 import { ThemeStyleProvider } from "./store/theme";
 import { cn } from "./utils/cn";
+import { readStorage, writeStorage } from "./utils/storage";
 import PortfolioPage from "./features/portfolio/PortfolioPage";
 import Navbar from "./components/Navbar";
 const ThemesPage = lazy(() => import("./features/themes/ThemesPage"));
@@ -40,7 +41,7 @@ function Shell({ dark, route, onToggle, chatReady }) {
 }
 export default function App() {
     const route = useHashRoute();
-    const [dark, setDark] = useState(() => localStorage.getItem("km-theme") !== "light");
+    const [dark, setDark] = useState(() => readStorage("km-theme", "dark") !== "light");
     const [chatReady, setChatReady] = useState(false);
     useEffect(() => {
         const timer = window.setTimeout(() => setChatReady(true), 1000);
@@ -70,7 +71,7 @@ export default function App() {
     }, []);
     useEffect(() => {
         document.documentElement.classList.toggle("dark", dark);
-        localStorage.setItem("km-theme", dark ? "dark" : "light");
+        writeStorage("km-theme", dark ? "dark" : "light");
     }, [dark]);
     return (_jsx(LangProvider, { children: _jsx(ThemeStyleProvider, { children: _jsx(ContentProvider, { children: _jsx(Shell, { dark: dark, route: route, chatReady: chatReady, onToggle: () => setDark((v) => !v) }) }) }) }));
 }

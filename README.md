@@ -75,20 +75,6 @@ cd ..\backend
 
 Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/#/admin`.
 
-## Vercel deployment
-
-The root `vercel.json` defines two services: the Flask backend in `backend/` and
-the Vite frontend in `frontend/`. The frontend is public at `/`; requests under
-`/api/` are routed to the backend. Both services are deployed on the same origin,
-so frontend API calls use the public `/api/...` routes and do not require a
-service binding.
-
-Set `DATABASE_URL` to a persistent production database and configure production
-admin credentials in Vercel's environment variables. The default SQLite database
-is intended for local development; Vercel function storage is not a persistent
-database. Apply the Flask migrations to the production database before using the
-CMS.
-
 ## Offline mode
 
 The production frontend build includes a content-versioned service worker that precaches the built site and the standalone offline page, styles, game script, and icon. Its cache version changes automatically when offline assets change. The offline page uses no remote assets. When the browser fires an `offline` event, the app opens that page; the service worker also serves it for navigations that fail while offline. When an `online` event fires, the offline page automatically returns to the page that was open before the interruption.

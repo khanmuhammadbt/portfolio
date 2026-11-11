@@ -4,6 +4,7 @@
  * Brute-force: 5 failed attempts -> exponential lockout (mirrors backend rules).
  * In production (Flask serving the app), ALL auth is server-side.
  */
+import { readStorage, writeStorage } from "../utils/storage";
 export class LockedError extends Error {
     constructor(retryAfter) {
         super("Too many failed attempts");
@@ -35,14 +36,14 @@ async function sha256(text) {
 }
 function readAttempts() {
     try {
-        return JSON.parse(localStorage.getItem(ATTEMPTS_KEY) ?? '{"fails":0,"lockUntil":0}');
+        return JSON.parse(readStorage(ATTEMPTS_KEY, '{"fails":0,"lockUntil":0}'));
     }
     catch {
         return { fails: 0, lockUntil: 0 };
     }
 }
 function writeAttempts(a) {
-    localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(a));
+    writeStorage(ATTEMPTS_KEY, JSON.stringify(a));
 }
 export function demoLockRemaining() {
     const { lockUntil } = readAttempts();
@@ -70,7 +71,7 @@ export async function demoLogin(username, password) {
     const remaining = demoLockRemaining();
     if (remaining > 0)
         throw new LockedError(remaining);
-    const stored = localStorage.getItem(HASH_KEY) ?? FACTORY_HASH;
+    const stored = readStorage(HASH_KEY, FACTORY_HASH);
     const ok = username.trim() === DEMO_USERNAME && (await sha256(password)) === stored;
     if (!ok) {
         const a = readAttempts();
@@ -94,8 +95,8 @@ export function demoLogout() {
     sessionStorage.removeItem(SESSION_KEY);
 }
 export async function demoChangePassword(current, next) {
-    const stored = localStorage.getItem(HASH_KEY) ?? FACTORY_HASH;
+    const stored = readStorage(HASH_KEY, FACTORY_HASH);
     if ((await sha256(current)) !== stored)
         throw new BadCredentialsError("Current password is incorrect");
-    localStorage.setItem(HASH_KEY, await sha256(next));
+    writeStorage(HASH_KEY, await sha256(next));
 }

@@ -28,7 +28,7 @@ export default function PortfolioPage() {
   return (
     <>
       <div className="neu-inset-sm pointer-events-none fixed inset-x-0 top-0 z-50 h-1.5 rounded-full">
-        <m.div
+        <motion.div
           style={{ scaleX: progress }}
           className="h-full origin-left rounded-full bg-gradient-to-r from-neu-accent via-neu-accent2 to-neu-accent"
         />
@@ -52,7 +52,7 @@ export default function PortfolioPage() {
       </main>
       <AnimatePresence>
         {showTop && (
-          <m.a
+          <motion.a
             href="#"
             onClick={(event) => {
               event.preventDefault();
@@ -66,7 +66,7 @@ export default function PortfolioPage() {
             className="press fixed bottom-6 left-6 z-40 grid size-12 place-items-center rounded-full text-neu-muted"
           >
             <ArrowUp className="size-5" />
-          </m.a>
+          </motion.a>
         )}
       </AnimatePresence>
     </>

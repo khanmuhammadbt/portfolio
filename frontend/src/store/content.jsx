@@ -4,19 +4,15 @@ import { DEFAULT_CONTENT, mergeContent } from "../lib/content";
 import { localizeContent } from "../lib/i18n";
 import { detectBackend } from "../lib/api";
 import { contentService } from "../features/content/contentService";
+import { readJsonStorage, writeJsonStorage } from "../utils/storage";
 import { useLang } from "./lang";
 const STORAGE_KEY = "km-content-v1";
 const Ctx = createContext(null);
 function readLocal() {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw)
-            return null;
-        return mergeContent(DEFAULT_CONTENT, JSON.parse(raw));
-    }
-    catch {
+    const raw = readJsonStorage(STORAGE_KEY, null);
+    if (!raw)
         return null;
-    }
+    return mergeContent(DEFAULT_CONTENT, raw);
 }
 export function ContentProvider({ children }) {
     const [content, setContent] = useState(DEFAULT_CONTENT);
@@ -74,7 +70,7 @@ export function ContentProvider({ children }) {
             setSource("api");
             return;
         }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        writeJsonStorage(STORAGE_KEY, next);
         setContent(next);
         setSource("local");
         setUpdatedAt(new Date().toISOString());

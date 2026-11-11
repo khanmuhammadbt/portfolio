@@ -1,12 +1,13 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { dict } from "../lib/i18n";
+import { readStorage, writeStorage } from "../utils/storage";
 const LANG_KEY = "km-lang";
 const Ctx = createContext(null);
 export function LangProvider({ children }) {
-    const [lang, setLangState] = useState(() => localStorage.getItem(LANG_KEY) === "ur" ? "ur" : "en");
+    const [lang, setLangState] = useState(() => (readStorage(LANG_KEY, "en") === "ur" ? "ur" : "en"));
     useEffect(() => {
-        localStorage.setItem(LANG_KEY, lang);
+        writeStorage(LANG_KEY, lang);
         // NOTE: dir/font scoping is applied on the site container (not <html>),
         // so the admin panel always stays clean LTR regardless of language.
     }, [lang]);

@@ -1,10 +1,10 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useRef } from "react";
-import { m, useInView, animate } from "framer-motion";
+import { motion, useInView, animate } from "framer-motion";
 import { cn } from "../utils/cn";
 /** Butter-smooth scroll reveal wrapper */
 export function Reveal({ children, delay = 0, y = 36, className, }) {
-    return (_jsx(m.div, { className: cn("min-w-0", className), initial: { opacity: 0, y }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-70px" }, transition: { duration: 0.85, delay, ease: [0.22, 1, 0.36, 1] }, children: children }));
+    return (_jsx(motion.div, { className: cn("min-w-0", className), initial: { opacity: 0, y }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-70px" }, transition: { duration: 0.85, delay, ease: [0.22, 1, 0.36, 1] }, children: children }));
 }
 /** Consistent section heading block */
 export function SectionHead({ eyebrow, title, sub, align = "center", }) {
