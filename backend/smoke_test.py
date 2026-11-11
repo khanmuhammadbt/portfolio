@@ -9,8 +9,9 @@ sys.dont_write_bytecode = True
 import app as server  # noqa: E402
 from app.extensions import db  # noqa: E402
 from flask_migrate import downgrade, upgrade  # noqa: E402
-from app.models.auth_models import AdminUser, LoginAttempt  # noqa: E402
+from app.models.auth_models import AdminUser, AuthSession, LoginAttempt  # noqa: E402
 from app.models.audit_models import AuditLog  # noqa: E402
+from reset_admin_password import reset_admin_password  # noqa: E402
 
 with server.app.app_context():
     upgrade()
@@ -121,6 +122,38 @@ r = c.post("/api/auth/logout", json={}, headers={"X-CSRF-Token": token3})
 check("logout", r.status_code == 200)
 r = c.get("/api/auth/me")
 check("session destroyed after logout", r.status_code == 401)
+
+# ---------- local password reset ----------
+check("local reset rejects unknown admin", not reset_admin_password("missing", "NewPass123"))
+try:
+    reset_admin_password("admin", "weak")
+    weak_password_rejected = False
+except ValueError:
+    weak_password_rejected = True
+check("local reset rejects weak password", weak_password_rejected)
+with server.app.app_context():
+    db.session.add(
+        LoginAttempt(subject_type="ip", subject_key="127.0.0.1", failed_attempts=3)
+    )
+    db.session.commit()
+check("local reset updates existing admin", reset_admin_password("admin", "ResetPass123"))
+with server.app.app_context():
+    user = AdminUser.query.filter_by(username="admin").first()
+    check("reset password stored as hash", user and user.password_hash.startswith("pbkdf2:sha256:"))
+    check("reset recorded in audit log", AuditLog.query.filter_by(event="password_reset").count() == 1)
+    check("reset clears login lockouts", LoginAttempt.query.count() == 0)
+
+r = c.get("/api/auth/csrf")
+reset_token = r.get_json()["csrf_token"]
+r = c.post(
+    "/api/auth/login",
+    json={"username": "admin", "password": "ResetPass123"},
+    headers={"X-CSRF-Token": reset_token},
+)
+check("login succeeds with reset password", r.status_code == 200)
+check("local reset revokes existing sessions", reset_admin_password("admin", "NextPass456"))
+with server.app.app_context():
+    check("reset removed admin sessions", AuthSession.query.filter_by(admin_id=user.id).count() == 0)
 
 # ---------- security headers ----------
 r = c.get("/api/health")

@@ -100,6 +100,14 @@ The default first-run credentials are:
 
 Change the password from the admin Security tab. For a new deployment, set `ADMIN_USERNAME` and `ADMIN_PASSWORD` before starting Flask.
 
+If you can no longer sign in, stop the Flask server and run this from the repository root to reset an existing admin account. The new password is entered without being echoed; it must contain at least 8 characters, including letters and digits. The command uses the configured `DATABASE_URL` (or the default `backend/cms.db`), revokes that account's sessions, clears login lockouts, and records the reset in the audit log:
+
+```powershell
+.\venv\Scripts\python.exe backend\reset_admin_password.py
+```
+
+Make sure `DATABASE_URL` points to the intended database before running the command.
+
 ## Configuration
 
 | Variable | Default | Purpose |
