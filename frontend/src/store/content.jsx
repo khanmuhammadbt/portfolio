@@ -27,9 +27,9 @@ export function ContentProvider({ children }) {
     const reload = useCallback(async () => {
         const hasBackend = await detectBackend();
         if (hasBackend) {
+            setMode("api");
             const res = await contentService.get();
             if (res) {
-                setMode("api");
                 setContent(mergeContent(DEFAULT_CONTENT, res.content));
                 setSource("api");
                 setUpdatedAt(res.updated_at);

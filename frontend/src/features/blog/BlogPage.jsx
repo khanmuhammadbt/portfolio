@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3 } from "lucide-react";
-import { m } from "framer-motion";
+import { motion } from "framer-motion";
 import { useSiteContent } from "../../store/content";
 
 function formatDate(value) {

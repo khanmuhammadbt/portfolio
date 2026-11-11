@@ -1,6 +1,6 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, CircleAlert, Eye, EyeOff, KeyRound, Loader2, Lock, LogOut, Moon, RotateCcw, Save, ShieldCheck, Sun, } from "lucide-react";
 import { useSiteContent } from "../store/content";
 import { ApiError } from "../lib/api";

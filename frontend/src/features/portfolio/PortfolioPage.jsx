@@ -1,4 +1,4 @@
-import { AnimatePresence, m, useScroll, useSpring } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import { ArrowUp, Palette } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLang } from "../../store/lang";

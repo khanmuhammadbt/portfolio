@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import gzip
 import json
 import os
 
@@ -48,42 +47,18 @@ def create_app() -> Flask:
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; img-src 'self' data: https:; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
             "font-src 'self' https://fonts.gstatic.com; connect-src 'self'"
         )
         if application.config["SECURE_COOKIE"]:
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 
-    @application.after_request
-    def compress_static_assets(response):
-        if (
-            response.status_code != 200
-            or request.method != "GET"
-            or not request.path.startswith("/assets/")
-            or not request.path.endswith((".js", ".css"))
-            or request.accept_encodings["gzip"] <= 0
-        ):
-            return response
-
-        response.direct_passthrough = False
-        body = response.get_data()
-        if len(body) >= 1024:
-            compressed = gzip.compress(body, compresslevel=6, mtime=0)
-            response.set_data(compressed)
-            response.headers["Content-Encoding"] = "gzip"
-            response.headers["Content-Length"] = str(len(compressed))
-            response.headers["Vary"] = "Accept-Encoding"
-        return response
-
     @application.route("/", defaults={"path": ""})
     @application.route("/<path:path>")
     def spa(path: str):
         if path and os.path.exists(os.path.join(DIST_DIR, path)):
-            response = send_from_directory(DIST_DIR, path)
-            if path.startswith("assets/") and "-" in os.path.basename(path):
-                response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-            return response
+            return send_from_directory(DIST_DIR, path)
         return send_from_directory(DIST_DIR, "index.html")
 
     @application.errorhandler(413)

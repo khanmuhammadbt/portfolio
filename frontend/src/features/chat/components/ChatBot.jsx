@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, Loader2, Mail, MessageCircle, Send, X } from "lucide-react";
 import { GithubIcon, InstagramIcon, WhatsappIcon, YoutubeIcon } from "../../../components/icons";
 import { detectBackend } from "../../../lib/api";
