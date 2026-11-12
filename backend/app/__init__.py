@@ -50,6 +50,15 @@ def _database_url() -> str:
         sslmode = query.get("sslmode")
         if not sslmode or str(sslmode).lower() in {"allow", "disable", "prefer"}:
             query["sslmode"] = "require"
+        channel_binding = query.get("channel_binding")
+        if channel_binding is not None:
+            if not isinstance(channel_binding, str) or channel_binding.lower() not in {
+                "disable",
+                "prefer",
+                "require",
+            }:
+                raise RuntimeError("DATABASE_URL has an invalid channel_binding option.")
+            query["channel_binding"] = channel_binding.lower()
         url = url.set(query=query)
 
     return url.render_as_string(hide_password=False)

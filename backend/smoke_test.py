@@ -87,6 +87,36 @@ check(
 
 with patch.dict(
     os.environ,
+    {
+        "DATABASE_URL": (
+            "postgresql://user:password@db.example/app"
+            "?sslmode=require&channel_binding=require"
+        )
+    },
+):
+    channel_binding_app = server.create_app()
+    channel_binding_url = make_url(channel_binding_app.config["SQLALCHEMY_DATABASE_URI"])
+check(
+    "valid PostgreSQL channel binding is retained",
+    channel_binding_url.query["channel_binding"] == "require",
+)
+
+with patch.dict(
+    os.environ,
+    {"DATABASE_URL": "postgresql://user:password@db.example/app?channel_binding=require%3Drequire"},
+):
+    try:
+        server.create_app()
+        rejects_invalid_channel_binding = False
+    except RuntimeError as error:
+        rejects_invalid_channel_binding = "invalid channel_binding" in str(error)
+check(
+    "invalid PostgreSQL channel binding fails before connecting",
+    rejects_invalid_channel_binding,
+)
+
+with patch.dict(
+    os.environ,
     {"VERCEL": "1", "DATABASE_URL": "sqlite:///local.db"},
 ):
     try:
