@@ -97,21 +97,30 @@ Open `http://127.0.0.1:5000` after the server starts. The admin panel is availab
 
 The root [vercel.json](./vercel.json) configures two services: `backend` (Flask, rooted at `backend/`, with `main:app` as its entrypoint) and `frontend` (Vite, rooted at `frontend/`). The backend entrypoint imports the Flask instance from `backend/app/__init__.py`, avoiding a name collision with the local `backend/app.py` launcher. Requests under `/api/` are routed to the backend; all other paths are routed to the frontend. The frontend already makes same-origin `/api/...` requests, so no service binding is needed.
 
-Configure a hosted PostgreSQL database for the backend before deploying. The SQLAlchemy ORM and Alembic migrations use standard SQL and work with PostgreSQL; this project does not currently include a tested SQLAlchemy/libSQL dialect, so Turso/libSQL is not configured. Neon PostgreSQL through the Vercel Marketplace is one supported option. For serverless use, set `DATABASE_URL` to the provider's pooled PostgreSQL connection string. The application uses a one-connection pool per warm instance, checks stale connections, and keeps SQLite as the local-development default. On Vercel (`VERCEL=1`), startup fails clearly if `DATABASE_URL` is missing rather than falling back to a read-only SQLite file.
+Configure a hosted PostgreSQL database for the backend before deploying. Neon PostgreSQL through the Vercel Marketplace is supported. Set `DATABASE_URL` to Neon's pooled PostgreSQL connection string; standard `postgres://` and `postgresql://` URLs are normalized to the `psycopg` driver, and SSL is required if the URL does not already specify a secure `sslmode`. The application uses a one-connection pool per warm instance with stale-connection checks, and keeps SQLite as the local-development default. On Vercel (`VERCEL=1`), startup fails if `DATABASE_URL` is missing or points to SQLite.
 
-Run the existing migrations against the hosted database before the first deployment/request. From the `backend` directory, with `DATABASE_URL` set to the hosted connection string:
+To migrate the existing local database, run this from the `backend` directory with `DATABASE_URL` set to the Neon URL:
+
+```powershell
+$env:DATABASE_URL = "<Neon pooled PostgreSQL connection string>"
+..\venv\Scripts\python.exe migrate_sqlite_to_postgres.py --source cms.db
+```
+
+The command upgrades the PostgreSQL schema with Alembic, then copies the SQLite admin accounts, password hashes, sessions, login-attempt state, audit history, and site content while preserving primary keys and relationships. The SQLite source is opened read-only and is never deleted or modified. Identical rows already in PostgreSQL are skipped, making reruns safe; conflicting records stop the transaction rather than overwrite target data. Run it from a machine that has the source `cms.db` and do so before serving production requests. Never deploy the SQLite database file to Vercel.
+
+If no local records need to be migrated, create the PostgreSQL schema with:
 
 ```powershell
 ..\venv\Scripts\python.exe -m flask --app app db upgrade
 ```
 
-Do not run schema migrations from a request handler. The schema migration creates the tables but does not copy rows from `backend/cms.db`; transfer existing admin/content data separately if those local records should appear in production. When the hosted database is empty, the normal bootstrap creates the initial admin and default content.
+Do not run schema migrations from a request handler. The first request to an empty database seeds the initial admin and default content, so migrate existing records before deploying traffic to the new database.
 
 Set these Vercel project environment variables for the backend service (at least for Production; configure Preview separately if it also needs persistence):
 
 | Variable | Required | Value |
 | --- | --- | --- |
-| `DATABASE_URL` | Yes | Pooled PostgreSQL URL from the hosted provider; use the pooler endpoint and keep its credentials in Vercel settings. `postgres://` and `postgresql://` are normalized to the `psycopg` driver. |
+| `DATABASE_URL` | Yes | Pooled PostgreSQL URL from the hosted provider; use the pooler endpoint and keep its credentials in Vercel settings. `postgres://` and `postgresql://` are normalized to the `psycopg` driver, and SSL is required. |
 | `ADMIN_USERNAME` | Yes, for first startup | Desired initial admin username. |
 | `ADMIN_PASSWORD` | Yes, for first startup | Strong initial admin password; do not use the development default. |
 | `SECURE_COOKIE` | Yes, in production | `true` to mark the authentication cookie Secure over HTTPS. |
@@ -119,6 +128,8 @@ Set these Vercel project environment variables for the backend service (at least
 | `CHAT_MODEL` | No | Optional chat model override. |
 
 Database connection failures return a generic `503` response and log only the exception type, not the database URL or credentials. A hosted database must be provisioned and its schema migrated before the application can create sessions or issue CSRF tokens; this repository cannot verify a production connection without that database's credentials.
+
+Expired or idle sessions are deleted when their cookie is next used. To remove inactive sessions whose clients never return, run `..\venv\Scripts\python.exe -m flask --app app cleanup-auth-sessions` from the backend directory with `DATABASE_URL` set to the target database.
 
 ## Offline mode
 

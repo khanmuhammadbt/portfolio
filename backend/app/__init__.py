@@ -1,33 +1,63 @@
 from __future__ import annotations
 
-import json
 import os
 
 from flask import Flask, g, jsonify, request, send_from_directory
-from sqlalchemy.exc import OperationalError
+from flask.cli import with_appcontext
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError, OperationalError
 
 from .extensions import db, migrate
 from .models import AdminUser, SiteContentRow
 from .routes import auth_bp, chat_bp, content_bp, health_bp
-from .services.auth_service import hash_password, load_session, rate_limiter
+from .services.auth_service import (
+    cleanup_inactive_sessions,
+    hash_password,
+    load_session,
+    rate_limiter,
+)
 from .utils.audit import client_ip
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DIST_DIR = os.path.normpath(os.path.join(BASE_DIR, os.environ.get("DIST_DIR", "../frontend/dist")))
 
 
+def _database_url() -> str:
+    configured_url = os.environ.get("DATABASE_URL", "").strip()
+    is_vercel = os.environ.get("VERCEL") == "1"
+    if not configured_url:
+        if is_vercel:
+            raise RuntimeError("DATABASE_URL is required for Vercel deployments.")
+        return f"sqlite:///{os.path.join(BASE_DIR, 'cms.db')}"
+
+    try:
+        url = make_url(configured_url)
+    except ArgumentError:
+        raise RuntimeError("DATABASE_URL is not a valid SQLAlchemy database URL.") from None
+    if url.drivername in {"postgres", "postgresql"}:
+        url = url.set(drivername="postgresql+psycopg")
+    elif (
+        url.drivername.startswith("postgresql+")
+        and url.drivername != "postgresql+psycopg"
+    ):
+        raise RuntimeError("DATABASE_URL must use the psycopg PostgreSQL driver.")
+
+    if is_vercel and url.get_backend_name() != "postgresql":
+        raise RuntimeError("Vercel deployments require a PostgreSQL DATABASE_URL.")
+
+    if url.get_backend_name() == "postgresql":
+        query = dict(url.query)
+        sslmode = query.get("sslmode")
+        if not sslmode or str(sslmode).lower() in {"allow", "disable", "prefer"}:
+            query["sslmode"] = "require"
+        url = url.set(query=query)
+
+    return url.render_as_string(hide_password=False)
+
+
 def create_app() -> Flask:
     application = Flask(__name__, static_folder=None)
-    database_url = os.environ.get("DATABASE_URL")
-    if database_url is None:
-        if os.environ.get("VERCEL") == "1":
-            raise RuntimeError("DATABASE_URL is required for Vercel deployments.")
-        database_url = f"sqlite:///{os.path.join(BASE_DIR, 'cms.db')}"
-    elif database_url.startswith("postgres://"):
-        database_url = "postgresql+psycopg://" + database_url[len("postgres://"):]
-    elif database_url.startswith("postgresql://"):
-        database_url = "postgresql+psycopg://" + database_url[len("postgresql://"):]
-
+    database_url = _database_url()
     application.config["SQLALCHEMY_DATABASE_URI"] = database_url
     if database_url.startswith("postgresql+psycopg://"):
         application.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
@@ -48,6 +78,12 @@ def create_app() -> Flask:
     application.register_blueprint(content_bp)
     application.register_blueprint(chat_bp)
     application.register_blueprint(auth_bp)
+
+    @application.cli.command("cleanup-auth-sessions")
+    @with_appcontext
+    def cleanup_auth_sessions_command():
+        deleted = cleanup_inactive_sessions()
+        application.logger.info("Removed %d expired authentication sessions.", deleted)
 
     @application.before_request
     def gate():

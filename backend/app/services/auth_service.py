@@ -5,10 +5,11 @@ import hashlib
 import hmac
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from functools import wraps
 from typing import Literal
 
+from sqlalchemy import or_
 from flask import g, jsonify, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -16,6 +17,7 @@ from ..extensions import db
 from ..models.auth_models import AdminUser, AuthSession, LoginAttempt
 from ..utils.audit import audit, client_ip
 from ..utils.rate_limiter import RateLimiter
+from ..utils.time import as_utc, utcnow
 
 SESSION_COOKIE = "km_session"
 IDLE_TIMEOUT = timedelta(minutes=30)
@@ -34,10 +36,6 @@ class LoginResult:
     csrf_token: str | None = None
 
 
-def utcnow_naive() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
-
-
 def hash_password(password: str) -> str:
     return generate_password_hash(password, method="pbkdf2:sha256:600000")
 
@@ -52,14 +50,15 @@ def _hash_token(raw: str) -> str:
 
 def _add_session(admin_id: int | None = None) -> tuple[str, AuthSession]:
     raw = secrets.token_urlsafe(32)
+    now = utcnow()
     session = AuthSession(
         id=_hash_token(raw),
         admin_id=admin_id,
         csrf_token=secrets.token_urlsafe(32),
         ip_address=client_ip(),
         user_agent=(request.user_agent.string or "")[:250],
-        expires_at=utcnow_naive() + ABSOLUTE_TIMEOUT,
-        last_seen_at=utcnow_naive(),
+        expires_at=now + ABSOLUTE_TIMEOUT,
+        last_seen_at=now,
     )
     db.session.add(session)
     return raw, session
@@ -81,11 +80,11 @@ def load_session() -> AuthSession | None:
     if not raw:
         return None
     session = db.session.get(AuthSession, _hash_token(raw))
-    now = utcnow_naive()
+    now = utcnow()
     if not session:
         return None
-    if (session.expires_at and session.expires_at < now) or (
-        session.last_seen_at and session.last_seen_at < now - IDLE_TIMEOUT
+    if (session.expires_at and as_utc(session.expires_at) < now) or (
+        session.last_seen_at and as_utc(session.last_seen_at) < now - IDLE_TIMEOUT
     ):
         db.session.delete(session)
         db.session.commit()
@@ -93,6 +92,18 @@ def load_session() -> AuthSession | None:
     session.last_seen_at = now
     db.session.commit()
     return session
+
+
+def cleanup_inactive_sessions() -> int:
+    now = utcnow()
+    result = AuthSession.query.filter(
+        or_(
+            AuthSession.expires_at < now,
+            AuthSession.last_seen_at < now - IDLE_TIMEOUT,
+        )
+    ).delete(synchronize_session=False)
+    db.session.commit()
+    return result
 
 
 def destroy_session(session: AuthSession) -> None:
@@ -123,7 +134,7 @@ def require_csrf(fn):
         origin = request.headers.get("Origin")
         if origin:
             host = request.host_url.rstrip("/")
-            if not (origin == host or origin.startswith(host)):
+            if origin != host:
                 return _json_error(403, "bad_origin", "Cross-origin request rejected.")
         if request.method != "GET" and not request.is_json:
             return _json_error(415, "json_required", "JSON body required.")
@@ -154,19 +165,21 @@ def _attempt_bucket(subject_type: str, key: str) -> LoginAttempt:
 
 
 def lock_remaining(username: str | None = None, ip: str | None = None) -> int:
-    now = utcnow_naive()
+    now = utcnow()
     remaining = 0
     for subject_type, key in (("user", username), ("ip", ip)):
         if not key:
             continue
         row = LoginAttempt.query.filter_by(subject_type=subject_type, subject_key=key).first()
-        if row and row.locked_until and row.locked_until > now:
-            remaining = max(remaining, int((row.locked_until - now).total_seconds()))
+        if row and row.locked_until:
+            locked_until = as_utc(row.locked_until)
+            if locked_until > now:
+                remaining = max(remaining, int((locked_until - now).total_seconds()))
     return remaining
 
 
 def register_failure(username: str, ip: str) -> int:
-    now = utcnow_naive()
+    now = utcnow()
     locked_for = 0
     for subject_type, key in (("user", username), ("ip", ip)):
         row = _attempt_bucket(subject_type, key)

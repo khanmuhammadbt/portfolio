@@ -2,6 +2,7 @@
 import os
 import sys
 import tempfile
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 os.environ["DATABASE_URL"] = f"sqlite:///{os.path.join(tempfile.mkdtemp(), 'test.db')}"
@@ -9,11 +10,13 @@ sys.dont_write_bytecode = True
 
 import app as server  # noqa: E402
 from app.extensions import db  # noqa: E402
+from app.services.auth_service import cleanup_inactive_sessions  # noqa: E402
 from flask_migrate import downgrade, upgrade  # noqa: E402
 from app.models.auth_models import AdminUser, AuthSession, LoginAttempt  # noqa: E402
 from app.models.audit_models import AuditLog  # noqa: E402
 from reset_admin_password import reset_admin_password  # noqa: E402
 from sqlalchemy.exc import OperationalError  # noqa: E402
+from sqlalchemy.engine import make_url  # noqa: E402
 
 with server.app.app_context():
     upgrade()
@@ -63,14 +66,35 @@ with patch.dict(os.environ, {"DATABASE_URL": "postgres://user:pass@db.example/ap
     postgres_app = server.create_app()
 check(
     "PostgreSQL URL normalized to psycopg",
-    postgres_app.config["SQLALCHEMY_DATABASE_URI"]
-    == "postgresql+psycopg://user:pass@db.example/app",
+    make_url(postgres_app.config["SQLALCHEMY_DATABASE_URI"]).drivername == "postgresql+psycopg",
 )
 check(
     "PostgreSQL serverless pool is bounded",
     postgres_app.config["SQLALCHEMY_ENGINE_OPTIONS"]["pool_size"] == 1
     and postgres_app.config["SQLALCHEMY_ENGINE_OPTIONS"]["max_overflow"] == 0,
 )
+with patch.dict(
+    os.environ,
+    {"DATABASE_URL": "postgresql://test:test@db.example/app?sslmode=prefer"},
+):
+    ssl_app = server.create_app()
+    ssl_url = make_url(ssl_app.config["SQLALCHEMY_DATABASE_URI"])
+check(
+    "PostgreSQL URLs use psycopg and require SSL",
+    ssl_url.drivername == "postgresql+psycopg"
+    and ssl_url.query["sslmode"] == "require",
+)
+
+with patch.dict(
+    os.environ,
+    {"VERCEL": "1", "DATABASE_URL": "sqlite:///local.db"},
+):
+    try:
+        server.create_app()
+        vercel_rejects_sqlite = False
+    except RuntimeError as error:
+        vercel_rejects_sqlite = "PostgreSQL" in str(error)
+check("Vercel rejects SQLite DATABASE_URL", vercel_rejects_sqlite)
 
 
 # ---------- health + content seed ----------
@@ -109,6 +133,13 @@ r = c.post("/api/auth/login", json={"username": "admin", "password": "x"}, heade
 check("login wrong CSRF -> 403", r.status_code == 403)
 
 headers = {"X-CSRF-Token": token}
+bad_origin = "http://localhost.evil"
+r = c.post(
+    "/api/auth/login",
+    json={"username": "admin", "password": "x"},
+    headers={**headers, "Origin": bad_origin},
+)
+check("CSRF rejects a host-prefix origin spoof", r.status_code == 403 and r.get_json()["code"] == "bad_origin")
 r = c.post("/api/auth/login", data="not-json", headers={**headers, "Content-Type": "text/plain"})
 check("non-JSON body -> 415", r.status_code == 415)
 
@@ -218,6 +249,57 @@ check("login succeeds with reset password", r.status_code == 200)
 check("local reset revokes existing sessions", reset_admin_password("admin", "NextPass456"))
 with server.app.app_context():
     check("reset removed admin sessions", AuthSession.query.filter_by(admin_id=user.id).count() == 0)
+
+# ---------- expired session handling and cleanup ----------
+for expiration_kind in ("absolute", "idle"):
+    expired_client = server.app.test_client()
+    csrf_response = expired_client.get("/api/auth/csrf")
+    csrf_value = csrf_response.get_json()["csrf_token"]
+    with server.app.app_context():
+        session = AuthSession.query.filter_by(csrf_token=csrf_value).one()
+        expired_session_id = session.id
+        now = datetime.now(timezone.utc)
+        if expiration_kind == "absolute":
+            session.expires_at = now - timedelta(seconds=1)
+        else:
+            session.expires_at = now + timedelta(hours=1)
+            session.last_seen_at = now - timedelta(minutes=31)
+        db.session.commit()
+    r = expired_client.get("/api/auth/me")
+    check(f"{expiration_kind} session expires", r.status_code == 401)
+    with server.app.app_context():
+        check(
+            f"{expiration_kind} session is deleted on access",
+            db.session.get(AuthSession, expired_session_id) is None,
+        )
+
+with server.app.app_context():
+    now = datetime.now(timezone.utc)
+    db.session.add_all(
+        [
+            AuthSession(
+                id="e" * 64,
+                csrf_token="expired-token",
+                expires_at=now - timedelta(seconds=1),
+                last_seen_at=now,
+            ),
+            AuthSession(
+                id="f" * 64,
+                csrf_token="idle-token",
+                expires_at=now + timedelta(hours=1),
+                last_seen_at=now - timedelta(minutes=31),
+            ),
+            AuthSession(
+                id="b" * 64,
+                csrf_token="active-token",
+                expires_at=now + timedelta(hours=1),
+                last_seen_at=now,
+            ),
+        ]
+    )
+    db.session.commit()
+    cleaned_sessions = cleanup_inactive_sessions()
+    check("session cleanup removes only expired and idle sessions", cleaned_sessions == 2)
 
 # ---------- safe database failure response ----------
 r = c.get("/api/test-db-failure")
