@@ -9,7 +9,7 @@ from sqlalchemy.exc import ArgumentError, OperationalError
 
 from .extensions import db, migrate
 from .models import AdminUser, SiteContentRow
-from .routes import auth_bp, chat_bp, content_bp, health_bp
+from .routes import auth_bp, chat_bp, content_bp, db_diagnostics_bp, health_bp
 from .services.auth_service import (
     cleanup_inactive_sessions,
     hash_password,
@@ -69,12 +69,15 @@ def create_app() -> Flask:
     database_url = _database_url()
     application.config["SQLALCHEMY_DATABASE_URI"] = database_url
     if database_url.startswith("postgresql+psycopg://"):
+        commit_sha = os.environ.get("VERCEL_GIT_COMMIT_SHA", "")[:12]
+        application_name = f"portfolio-api:{commit_sha}" if commit_sha else "portfolio-api"
         application.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
             "pool_pre_ping": True,
             "pool_recycle": 300,
             "pool_size": 1,
             "max_overflow": 0,
             "pool_timeout": 5,
+            "connect_args": {"application_name": application_name},
         }
     application.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     application.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024
@@ -87,6 +90,7 @@ def create_app() -> Flask:
     application.register_blueprint(content_bp)
     application.register_blueprint(chat_bp)
     application.register_blueprint(auth_bp)
+    application.register_blueprint(db_diagnostics_bp)
 
     @application.cli.command("cleanup-auth-sessions")
     @with_appcontext

@@ -116,6 +116,8 @@ If no local records need to be migrated, create the PostgreSQL schema with:
 
 Do not run schema migrations from a request handler. The first request to an empty database seeds the initial admin and default content, so migrate existing records before deploying traffic to the new database.
 
+CMS publishes record value-free audit entries in `audit_log`: the application entry identifies `content_service.save_content` and changed JSON field paths. On PostgreSQL, the migration also installs a `site_content` trigger that records every insert, update, and delete with the database role, client address, application name, backend PID, source function when supplied, and changed top-level field names. These audit records never include content values. Apply the migration with `flask db upgrade` before deploying the instrumented backend; SQLite does not install the PostgreSQL trigger.
+
 Set these Vercel project environment variables for the backend service (at least for Production; configure Preview separately if it also needs persistence):
 
 | Variable | Required | Value |

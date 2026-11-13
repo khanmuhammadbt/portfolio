@@ -14,6 +14,7 @@ from app.services.auth_service import cleanup_inactive_sessions  # noqa: E402
 from flask_migrate import downgrade, upgrade  # noqa: E402
 from app.models.auth_models import AdminUser, AuthSession, LoginAttempt  # noqa: E402
 from app.models.audit_models import AuditLog  # noqa: E402
+from app.services.content_service import _changed_fields  # noqa: E402
 from reset_admin_password import reset_admin_password  # noqa: E402
 from sqlalchemy.exc import OperationalError  # noqa: E402
 from sqlalchemy.engine import make_url  # noqa: E402
@@ -125,11 +126,21 @@ with patch.dict(
     except RuntimeError as error:
         vercel_rejects_sqlite = "PostgreSQL" in str(error)
 check("Vercel rejects SQLite DATABASE_URL", vercel_rejects_sqlite)
+check(
+    "content audit distinguishes JSON booleans from numbers",
+    _changed_fields({"value": True}, {"value": 1}) == ["value"]
+    and _changed_fields({"values": [False]}, {"values": [0]}) == ["values"],
+)
 
 
 # ---------- health + content seed ----------
 r = c.get("/api/health")
 check("health 200", r.status_code == 200)
+r = c.get("/api/admin/database-diagnostics")
+check(
+    "database diagnostics require authenticated admin",
+    r.status_code == 401 and r.get_json()["code"] == "auth_required",
+)
 r = c.get("/api/content")
 check("content seeded", r.status_code == 200 and r.get_json()["content"]["brand"]["name"] == "Khan Muhammad")
 
@@ -216,6 +227,13 @@ headers2 = {"X-CSRF-Token": token2}
 
 r = c.get("/api/auth/me")
 check("session persists (me)", r.status_code == 200 and r.get_json()["username"] == "admin")
+r = c.get("/api/admin/database-diagnostics")
+check(
+    "database diagnostics explicitly requires PostgreSQL",
+    r.status_code == 503
+    and r.get_json()["code"] == "postgresql_required"
+    and "DATABASE_URL" not in r.get_data(as_text=True),
+)
 
 # ---------- content write with auth + csrf ----------
 new_content = r = c.get("/api/content").get_json()["content"]
@@ -225,6 +243,19 @@ check("old CSRF token rejected after rotation", r.status_code == 403)
 
 r = c.put("/api/content", json={"content": new_content}, headers=headers2)
 check("content update -> 200", r.status_code == 200)
+with server.app.app_context():
+    content_audit = (
+        AuditLog.query.filter_by(event="content_update")
+        .order_by(AuditLog.id.desc())
+        .first()
+    )
+    content_audit_detail = content_audit.detail if content_audit else ""
+check(
+    "content audit records source and changed field names, not values",
+    "source=app.services.content_service.save_content" in content_audit_detail
+    and "fields=hero.firstName" in content_audit_detail
+    and "TESTED" not in content_audit_detail,
+)
 r = c.get("/api/content")
 check("content updated in DB", r.get_json()["content"]["hero"]["firstName"] == "TESTED")
 
