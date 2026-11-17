@@ -55,12 +55,12 @@ Useful endpoints:
 
 - Website: `http://127.0.0.1:5173`
 - API health check: `http://127.0.0.1:5000/api/health`
-- Admin panel: `http://127.0.0.1:5173/#/admin`
-- Public blog: `http://127.0.0.1:5173/#/blog`
+- Admin panel: `http://127.0.0.1:5173/admin`
+- Public blog: `http://127.0.0.1:5173/blog`
 
 The frontend can also run in demo mode if the Flask API is unavailable. In that mode, editable content is stored in the browser instead of the backend database.
 
-Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `#/blog` and open at `#/blog/<slug>`.
+Blog articles are managed from the **Blog** tab in the admin panel. Add an article, fill in its title, URL slug, summary, body, and optional cover image (upload a file or paste an image URL), then mark it **Published** and publish the site changes. Drafts remain hidden from visitors; published articles are listed at `/blog` and open at `/blog/<slug>`.
 
 ## Preview the production frontend build
 
@@ -91,7 +91,21 @@ cd backend
 ..\venv\Scripts\python.exe app.py
 ```
 
-Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/#/admin`.
+Open `http://127.0.0.1:5000` after the server starts. The admin panel is available at `http://127.0.0.1:5000/admin`.
+
+## Static pages and search metadata
+
+The Vite build prerenders the home page, blog index, themes page, admin login, and every published article to static HTML. It reads the published content from `PRERENDER_CONTENT_URL`; if unset, it requests `https://khanmuhammad.dev/api/content`. Configure this environment variable in Vercel to point to the published content API used for the deployment. CMS edits appear in the generated HTML, sitemap, and `llms.txt` after the next build.
+
+For a local build, start Flask first and set the API URL in PowerShell:
+
+```powershell
+$env:PRERENDER_CONTENT_URL = "http://127.0.0.1:5000/api/content"
+cd frontend
+npm run build
+```
+
+The build emits `sitemap.xml`, updates `llms.txt` with all published article links, and includes canonical, Open Graph, and Article JSON-LD metadata in each article's HTML. `robots.txt` permits crawlers and points to the sitemap.
 
 ## Vercel multi-service deployment
 

@@ -16,12 +16,12 @@ function readLocal() {
 }
 const DEMO_MODE_ENABLED = false;
 
-export function ContentProvider({ children }) {
-    const [content, setContent] = useState(DEFAULT_CONTENT);
+export function ContentProvider({ children, initialContent = null }) {
+    const [content, setContent] = useState(() => initialContent ? mergeContent(DEFAULT_CONTENT, initialContent) : DEFAULT_CONTENT);
     const [mode, setMode] = useState("api");
     const [source, setSource] = useState("default");
     const [updatedAt, setUpdatedAt] = useState(null);
-    const [ready, setReady] = useState(false);
+    const [ready, setReady] = useState(Boolean(initialContent));
     const reload = useCallback(async () => {
         const hasBackend = await detectBackend();
         if (hasBackend) {

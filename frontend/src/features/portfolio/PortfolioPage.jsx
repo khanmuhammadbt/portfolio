@@ -37,7 +37,7 @@ export default function PortfolioPage() {
         <Hero />
         <div className="relative z-10 -mt-8 mb-12 flex justify-center px-4">
           <a
-            href="#/themes"
+            href="/themes"
             className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold"
           >
             <Palette className="size-4" />

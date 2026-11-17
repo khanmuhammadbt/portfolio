@@ -1,9 +1,25 @@
-import { jsx as _jsx } from "react/jsx-runtime";
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App";
-createRoot(document.getElementById("root")).render(_jsx(StrictMode, { children: _jsx(App, {}) }));
+
+const root = document.getElementById("root");
+const contentNode = document.getElementById("__INITIAL_CONTENT__");
+const initialContent = contentNode ? JSON.parse(contentNode.textContent) : null;
+const app = (
+    <StrictMode>
+        <BrowserRouter>
+            <App initialContent={initialContent} />
+        </BrowserRouter>
+    </StrictMode>
+);
+
+if (root.hasChildNodes()) {
+    hydrateRoot(root, app);
+} else {
+    createRoot(root).render(app);
+}
 
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
     window.addEventListener("load", () => {

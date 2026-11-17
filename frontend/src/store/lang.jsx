@@ -4,8 +4,11 @@ import { dict } from "../lib/i18n";
 import { readStorage, writeStorage } from "../utils/storage";
 const LANG_KEY = "km-lang";
 const Ctx = createContext(null);
-export function LangProvider({ children }) {
-    const [lang, setLangState] = useState(() => (readStorage(LANG_KEY, "en") === "ur" ? "ur" : "en"));
+export function LangProvider({ children, initialLang = "en" }) {
+    const [lang, setLangState] = useState(initialLang);
+    useEffect(() => {
+        setLangState(readStorage(LANG_KEY, "en") === "ur" ? "ur" : "en");
+    }, []);
     useEffect(() => {
         writeStorage(LANG_KEY, lang);
         // NOTE: dir/font scoping is applied on the site container (not <html>),

@@ -7,7 +7,7 @@ import { useLang } from "../store/lang";
 import { getTheme } from "../lib/themes";
 import { useThemeStyle } from "../store/theme";
 
-const LINK_HREFS = ["#about", "#skills", "#experience", "#contact", "#/blog"];
+const LINK_HREFS = ["/#about", "/#skills", "/#experience", "/#contact", "/blog"];
 
 export default function Navbar({ dark, onToggle }) {
   const [open, setOpen] = useState(false);
@@ -42,7 +42,7 @@ export default function Navbar({ dark, onToggle }) {
           scrolled ? "neu-inset-sm" : "neu-sm",
         )}
       >
-        <a href="#home" className="group flex items-center gap-3">
+        <a href="/#home" className="group flex items-center gap-3">
           <span className="neu-inset-sm grid size-10 place-items-center rounded-full font-display text-sm font-bold text-neu-accent transition-transform duration-300 group-active:scale-90">
             {content.brand.initials}
           </span>

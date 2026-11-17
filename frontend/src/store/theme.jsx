@@ -8,8 +8,11 @@ function readTheme() {
     const saved = readStorage(KEY, DEFAULT_THEME);
     return THEMES.some((t) => t.id === saved) ? saved : DEFAULT_THEME;
 }
-export function ThemeStyleProvider({ children }) {
-    const [theme, setThemeState] = useState(readTheme);
+export function ThemeStyleProvider({ children, initialTheme = DEFAULT_THEME }) {
+    const [theme, setThemeState] = useState(initialTheme);
+    useEffect(() => {
+        setThemeState(readTheme());
+    }, []);
     useEffect(() => {
         writeStorage(KEY, theme);
         // on <html> so the page background matches; admin re-scopes to default
