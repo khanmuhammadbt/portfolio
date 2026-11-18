@@ -1,6 +1,17 @@
+# Dependencies
 node_modules/
-frontend/dist/
+**/node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+
+# Build and coverage output
+dist/
+**/dist/
+build/
+**/build/
 .vite/
+**/.vite/
 coverage/
 frontend/coverage/
 .vercel/
@@ -11,7 +22,12 @@ frontend/lighthouse-*.json
 # Python environments and generated files
 venv/
 .venv/
+venv-*/
+.venv-*/
+venv.*/
+.venv.*/
 __pycache__/
+**/__pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
@@ -21,6 +37,7 @@ __pycache__/
 *.egg-info/
 .coverage
 htmlcov/
+instance/
 
 # Local SQLite databases
 *.db
@@ -35,8 +52,15 @@ htmlcov/
 .env.*
 !.env.example
 *.local
+.npmrc
+.pypirc
 
-# Logs and operating system files
+# Logs and operating system/editor files
 *.log
+*.pid
+*.seed
+.vscode/
+.idea/
+*.swp
 .DS_Store
 Thumbs.db

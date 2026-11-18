@@ -6,7 +6,7 @@ export const CHATBOT = {
 };
 /** NOTE (security): key used from the browser ONLY in static demo mode.
  *  Behind the Flask backend, /api/chat proxies and the key stays server-side (CHAT_API_KEY). */
-export const CHAT_API_KEY = "AQ.Ab8RN6I_4TlfzSrK481DFQNXH2uTXoKzoID8PrdStaVzzhgPBQ";
+export const CHAT_API_KEY = "";
 export const CHAT_MODEL = "gemini-3.5-flash-lite";
 export function contactsFromContent(content) {
     const c = content ?? DEFAULT_CONTENT;
