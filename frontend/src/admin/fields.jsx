@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useRef, useState } from "react";
-import { ArrowDown, ArrowUp, ImageUp, Plus, Trash2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, Bold, ImageUp, Italic, List, ListOrdered, Plus, Quote, Trash2, Underline, X } from "lucide-react";
 import { ICON_CHOICES } from "../lib/icons";
 export const inputCls = "neu-inset-sm w-full rounded-xl bg-transparent px-4 py-2.5 text-sm outline-none ring-neu-accent/0 transition-shadow focus:ring-2 focus:ring-neu-accent/50";
 export function Field({ label, children }) {
@@ -11,6 +11,51 @@ export function TextInput(props) {
 }
 export function TextArea(props) {
     return _jsx("textarea", { rows: 3, ...props, className: `${inputCls} resize-y` });
+}
+export function RichTextEditor({ value, onChange, rows = 8 }) {
+    const editorRef = useRef(null);
+    useEffect(() => {
+        const html = value || "";
+        if (editorRef.current && editorRef.current.innerHTML !== html)
+            editorRef.current.innerHTML = html;
+    }, [value]);
+    const command = (name, commandValue = null) => {
+        editorRef.current?.focus();
+        document.execCommand(name, false, commandValue);
+        if (editorRef.current)
+            onChange(editorRef.current.innerHTML);
+    };
+    const toolbarButton = (label, Icon, name, commandValue) => (_jsx("button", {
+        type: "button",
+        "aria-label": label,
+        title: label,
+        onMouseDown: (event) => {
+            event.preventDefault();
+            command(name, commandValue);
+        },
+        className: "press grid size-9 place-items-center rounded-xl text-neu-muted",
+        children: _jsx(Icon, { className: "size-4" })
+    }, name));
+    return (_jsxs("div", { className: "neu-inset-sm overflow-hidden rounded-xl", children: [
+        _jsxs("div", { className: "flex flex-wrap gap-2 border-b border-neu-muted/10 p-2", children: [
+            toolbarButton("Bold", Bold, "bold"),
+            toolbarButton("Italic", Italic, "italic"),
+            toolbarButton("Underline", Underline, "underline"),
+            toolbarButton("Bulleted list", List, "insertUnorderedList"),
+            toolbarButton("Numbered list", ListOrdered, "insertOrderedList"),
+            toolbarButton("Quote", Quote, "formatBlock", "blockquote")
+        ] }),
+        _jsx("div", {
+            ref: editorRef,
+            contentEditable: true,
+            suppressContentEditableWarning: true,
+            role: "textbox",
+            "aria-multiline": true,
+            onInput: (event) => onChange(event.currentTarget.innerHTML),
+            className: "min-h-32 overflow-y-auto px-4 py-3 text-sm leading-relaxed outline-none [&_blockquote]:border-l-2 [&_blockquote]:border-neu-accent [&_blockquote]:pl-4 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5",
+            style: { minHeight: `${rows * 2}rem` }
+        })
+    ] }));
 }
 export function NumInput(props) {
     return _jsx("input", { type: "number", ...props, className: inputCls });
@@ -70,7 +115,7 @@ export function ImageUpload({ value, onChange, fallbackLabel = "Built-in photo",
         };
         reader.readAsDataURL(file);
     };
-    return (_jsxs("div", { className: "flex flex-col gap-3", children: [_jsxs("div", { className: "flex items-start gap-4", children: [_jsx("span", { className: "neu-inset-sm grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl", children: value ? (_jsx("img", { src: value, alt: "preview", className: "size-full object-cover" })) : (_jsx("span", { className: "px-2 text-center text-[10px] font-semibold uppercase tracking-wider text-neu-muted", children: fallbackLabel })) }), _jsxs("div", { className: "flex min-w-0 flex-1 flex-col gap-2", children: [_jsx("input", { ref: fileRef, type: "file", accept: "image/*", className: "hidden", onChange: (e) => {
+    return (_jsxs("div", { className: "flex flex-col gap-3", children: [_jsxs("div", { className: "flex items-start gap-4", children: [_jsx("span", { className: "neu-inset-sm grid aspect-[3/2] w-36 shrink-0 place-items-center overflow-hidden rounded-2xl", children: value ? (_jsx("img", { src: value, alt: "preview", className: "size-full object-cover" })) : (_jsx("span", { className: "px-2 text-center text-[10px] font-semibold uppercase tracking-wider text-neu-muted", children: fallbackLabel })) }), _jsxs("div", { className: "flex min-w-0 flex-1 flex-col gap-2", children: [_jsx("input", { ref: fileRef, type: "file", accept: "image/*", className: "hidden", onChange: (e) => {
                                     const f = e.target.files?.[0];
                                     if (f)
                                         handleFile(f);

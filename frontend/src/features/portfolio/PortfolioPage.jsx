@@ -35,7 +35,13 @@ export default function PortfolioPage() {
       </div>
       <main>
         <Hero />
-        <div className="relative z-10 -mt-8 mb-12 flex justify-center px-4">
+        <div className="relative z-10 -mt-8 mb-12 flex flex-col items-center gap-4 px-4 text-center">
+          <h2 className="font-display text-2xl font-bold sm:text-3xl">
+            {t.themeHeading}
+          </h2>
+          <p className="max-w-md text-sm leading-relaxed text-neu-muted sm:text-base">
+            {t.themeDescription}
+          </p>
           <a
             href="/themes"
             className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold"

@@ -1,4 +1,4 @@
-import { Field, ImageUpload, ListEditor, TextArea, TextInput } from "./fields";
+import { Field, ImageUpload, ListEditor, RichTextEditor, TextInput } from "./fields";
 
 function today() {
     const now = new Date();
@@ -51,8 +51,8 @@ export default function BlogEditor({ posts, onChange }) {
                             <Field label="Category"><TextInput value={post.category || ""} onChange={(event) => update({ category: event.target.value })} /></Field>
                             <Field label="Publish date"><TextInput type="date" value={post.date || ""} onChange={(event) => update({ date: event.target.value })} /></Field>
                         </div>
-                        <Field label="Short summary"><TextArea value={post.excerpt || ""} onChange={(event) => update({ excerpt: event.target.value })} /></Field>
-                        <Field label="Article body (separate paragraphs with a blank line)"><TextArea rows={12} value={post.body || ""} onChange={(event) => update({ body: event.target.value })} /></Field>
+                        <Field label="Short description"><RichTextEditor value={post.excerpt || ""} onChange={(excerpt) => update({ excerpt })} rows={4} /></Field>
+                        <Field label="Article body"><RichTextEditor value={post.body || ""} onChange={(body) => update({ body })} rows={12} /></Field>
                         <Field label="Cover image">
                             <ImageUpload
                                 value={post.coverImage || ""}
