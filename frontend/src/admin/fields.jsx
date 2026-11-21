@@ -2,6 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Bold, ImageUp, Italic, List, ListOrdered, Plus, Quote, Trash2, Underline, X } from "lucide-react";
 import { ICON_CHOICES } from "../lib/icons";
+import { sanitizeRichText } from "../utils/richText";
 export const inputCls = "neu-inset-sm w-full rounded-xl bg-transparent px-4 py-2.5 text-sm outline-none ring-neu-accent/0 transition-shadow focus:ring-2 focus:ring-neu-accent/50";
 export function Field({ label, children }) {
     return (_jsxs("label", { className: "block", children: [_jsx("span", { className: "mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-neu-muted", children: label }), children] }));
@@ -16,7 +17,7 @@ export function RichTextEditor({ value, onChange, rows = 8 }) {
     const editorRef = useRef(null);
     const lastEmittedRef = useRef(null);
     useEffect(() => {
-        const html = value || "";
+        const html = sanitizeRichText(value || "");
         if (!editorRef.current)
             return;
         if (lastEmittedRef.current === html)
@@ -30,7 +31,7 @@ export function RichTextEditor({ value, onChange, rows = 8 }) {
         editorRef.current?.focus();
         document.execCommand(name, false, commandValue);
         if (editorRef.current) {
-            const html = editorRef.current.innerHTML;
+            const html = sanitizeRichText(editorRef.current.innerHTML);
             lastEmittedRef.current = html;
             onChange(html);
         }
@@ -62,7 +63,7 @@ export function RichTextEditor({ value, onChange, rows = 8 }) {
             role: "textbox",
             "aria-multiline": true,
             onInput: (event) => {
-                const html = event.currentTarget.innerHTML;
+                const html = sanitizeRichText(event.currentTarget.innerHTML);
                 lastEmittedRef.current = html;
                 onChange(html);
             },
