@@ -51,8 +51,14 @@ export default function BlogEditor({ posts, onChange }) {
                             <Field label="Category"><TextInput value={post.category || ""} onChange={(event) => update({ category: event.target.value })} /></Field>
                             <Field label="Publish date"><TextInput type="date" value={post.date || ""} onChange={(event) => update({ date: event.target.value })} /></Field>
                         </div>
-                        <Field label="Short description"><RichTextEditor value={post.excerpt || ""} onChange={(excerpt) => update({ excerpt })} rows={4} /></Field>
-                        <Field label="Article body"><RichTextEditor value={post.body || ""} onChange={(body) => update({ body })} rows={12} /></Field>
+                        <div>
+                            <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-neu-muted">Short description</span>
+                            <RichTextEditor value={post.excerpt || ""} onChange={(excerpt) => update({ excerpt })} rows={4} />
+                        </div>
+                        <div>
+                            <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-neu-muted">Article body</span>
+                            <RichTextEditor value={post.body || ""} onChange={(body) => update({ body })} rows={12} />
+                        </div>
                         <Field label="Cover image">
                             <ImageUpload
                                 value={post.coverImage || ""}

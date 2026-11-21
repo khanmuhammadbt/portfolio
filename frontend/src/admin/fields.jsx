@@ -14,16 +14,26 @@ export function TextArea(props) {
 }
 export function RichTextEditor({ value, onChange, rows = 8 }) {
     const editorRef = useRef(null);
+    const lastEmittedRef = useRef(null);
     useEffect(() => {
         const html = value || "";
-        if (editorRef.current && editorRef.current.innerHTML !== html)
+        if (!editorRef.current)
+            return;
+        if (lastEmittedRef.current === html)
+            return;
+        if (editorRef.current.innerHTML !== html) {
             editorRef.current.innerHTML = html;
+        }
+        lastEmittedRef.current = null;
     }, [value]);
     const command = (name, commandValue = null) => {
         editorRef.current?.focus();
         document.execCommand(name, false, commandValue);
-        if (editorRef.current)
-            onChange(editorRef.current.innerHTML);
+        if (editorRef.current) {
+            const html = editorRef.current.innerHTML;
+            lastEmittedRef.current = html;
+            onChange(html);
+        }
     };
     const toolbarButton = (label, Icon, name, commandValue) => (_jsx("button", {
         type: "button",
@@ -51,7 +61,11 @@ export function RichTextEditor({ value, onChange, rows = 8 }) {
             suppressContentEditableWarning: true,
             role: "textbox",
             "aria-multiline": true,
-            onInput: (event) => onChange(event.currentTarget.innerHTML),
+            onInput: (event) => {
+                const html = event.currentTarget.innerHTML;
+                lastEmittedRef.current = html;
+                onChange(html);
+            },
             className: "min-h-32 overflow-y-auto px-4 py-3 text-sm leading-relaxed outline-none [&_blockquote]:border-l-2 [&_blockquote]:border-neu-accent [&_blockquote]:pl-4 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5",
             style: { minHeight: `${rows * 2}rem` }
         })
