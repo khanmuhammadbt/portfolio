@@ -47,8 +47,22 @@ export function RichTextEditor({ value, onChange, rows = 8 }) {
         className: "press grid size-9 place-items-center rounded-xl text-neu-muted",
         children: _jsx(Icon, { className: "size-4" })
     }, name));
+    const formatButton = (label, text, block) => (_jsx("button", {
+        type: "button",
+        "aria-label": label,
+        title: label,
+        onMouseDown: (event) => {
+            event.preventDefault();
+            command("formatBlock", block);
+        },
+        className: "press grid size-9 place-items-center rounded-xl text-xs font-bold text-neu-muted",
+        children: text
+    }, block));
     return (_jsxs("div", { className: "neu-inset-sm overflow-hidden rounded-xl", children: [
         _jsxs("div", { className: "flex flex-wrap gap-2 border-b border-neu-muted/10 p-2", children: [
+            formatButton("Paragraph", "P", "p"),
+            formatButton("Heading 2", "H2", "h2"),
+            formatButton("Heading 3", "H3", "h3"),
             toolbarButton("Bold", Bold, "bold"),
             toolbarButton("Italic", Italic, "italic"),
             toolbarButton("Underline", Underline, "underline"),

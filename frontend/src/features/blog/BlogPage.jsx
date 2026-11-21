@@ -43,7 +43,7 @@ function PostCard({ post, index }) {
                     )}
                 </div>
                 <h2 className="mt-4 font-display text-2xl font-bold leading-tight">{post.title}</h2>
-                <RichDescription value={post.excerpt} className="mt-3 flex-1 text-sm leading-relaxed text-neu-muted [&_blockquote]:border-l-2 [&_blockquote]:border-neu-accent [&_blockquote]:pl-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5" />
+                <RichDescription value={post.excerpt} className="mt-3 flex-1 text-sm leading-relaxed text-neu-muted [&_blockquote]:border-l-2 [&_blockquote]:border-neu-accent [&_blockquote]:pl-3 [&_h2]:text-lg [&_h2]:font-bold [&_h3]:text-base [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5" />
                 <a href={`/blog/${encodeURIComponent(post.slug)}`} className="press mt-6 inline-flex w-fit items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-neu-accent">
                     Read article <ArrowRight className="size-4 rtl:-scale-x-100" />
                 </a>
@@ -76,7 +76,7 @@ export default function BlogPage({ slug }) {
                                 <span className="inline-flex items-center gap-2"><Clock3 className="size-4" />{Math.max(1, Math.ceil(post.body.trim().split(/\s+/).length / 220))} min read</span>
                             </div>
                             <h1 className="mt-5 font-display text-4xl font-bold leading-tight sm:text-5xl">{post.title}</h1>
-                            <RichDescription value={post.excerpt} className="mt-5 text-lg leading-relaxed text-neu-muted [&_blockquote]:border-l-2 [&_blockquote]:border-neu-accent [&_blockquote]:pl-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5" />
+                            <RichDescription value={post.excerpt} className="mt-5 text-lg leading-relaxed text-neu-muted [&_blockquote]:border-l-2 [&_blockquote]:border-neu-accent [&_blockquote]:pl-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:text-xl [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5" />
                             {/<[a-z][\s\S]*>/i.test(post.body || "") ? (
                                 <div
                                     className="mt-10 space-y-5 text-base leading-8 text-neu-text [&_blockquote]:border-l-2 [&_blockquote]:border-neu-accent [&_blockquote]:pl-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:text-xl [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
